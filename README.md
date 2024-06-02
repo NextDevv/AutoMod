@@ -15,7 +15,7 @@ AutoMod is a Minecraft Spigot plugin designed to enhance in-game chat moderation
 
 ## Installation
 
-1. Download the latest release of AutoMod from the [releases page](https://github.com/yourusername/automod/releases).
+1. Download the latest release of AutoMod from the [releases page](https://github.com/nextdevv/automod/releases).
 2. Place the `AutoMod.jar` file into your server's `plugins` directory.
 3. Restart your Minecraft server to load the plugin.
 
