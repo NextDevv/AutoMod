@@ -7,6 +7,7 @@ import litebans.api.Entry;
 import litebans.api.Events;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.UUID;
 
@@ -52,30 +53,50 @@ public class LiteBans {
     }
 
     public void mutePlayer(UUID uuid) {
-        Player player = Bukkit.getPlayer(uuid);
-        assert player != null;
-        String muteCommand = plugin.getSettings().getMuteCommand().replace("{player}", player.getName()) + "--sender=AutoMod";
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), muteCommand);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                Player player = Bukkit.getPlayer(uuid);
+                assert player != null;
+                String muteCommand = plugin.getSettings().getMuteCommand().replace("{player}", player.getName()) + "--sender=AutoMod";
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), muteCommand);
+            }
+        }.runTask(plugin);
     }
 
     public void unmutePlayer(UUID uuid) {
-        Player player = Bukkit.getPlayer(uuid);
-        assert player != null;
-        String unmuteCommand = plugin.getSettings().getUnmuteCommand().replace("{player}", player.getName()) + "--sender=AutoMod";
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), unmuteCommand);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                Player player = Bukkit.getPlayer(uuid);
+                assert player != null;
+                String unmuteCommand = plugin.getSettings().getUnmuteCommand().replace("{player}", player.getName()) + "--sender=AutoMod";
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), unmuteCommand);
+            }
+        }.runTask(plugin);
     }
 
     public void warnPlayer(UUID uuid) {
-        Player player = Bukkit.getPlayer(uuid);
-        assert player != null;
-        String warnCommand = plugin.getSettings().getWarnCommand().replace("{player}", player.getName()) + "--sender=AutoMod";
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), warnCommand);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                Player player = Bukkit.getPlayer(uuid);
+                assert player != null;
+                String warnCommand = plugin.getSettings().getWarnCommand().replace("{player}", player.getName()) + "--sender=AutoMod";
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), warnCommand);
+            }
+        }.runTask(plugin);
     }
 
     public void clearWarnings(UUID uuid) {
-        Player player = Bukkit.getPlayer(uuid);
-        assert player != null;
-        String clearWarningsCommand = plugin.getSettings().getUnwarnCommand().replace("{player}", player.getName()) + "--sender=AutoMod";
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), clearWarningsCommand);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                Player player = Bukkit.getPlayer(uuid);
+                assert player != null;
+                String clearWarningsCommand = plugin.getSettings().getUnwarnCommand().replace("{player}", player.getName()) + "--sender=AutoMod";
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), clearWarningsCommand);
+            }
+        }.runTask(plugin);
     }
 }

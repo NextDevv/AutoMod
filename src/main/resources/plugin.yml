@@ -2,7 +2,9 @@ name: AutoMod
 version: '${version}'
 main: it.unilix.automod.AutoMod
 api-version: '1.20'
-load: STARTUP
+load: POSTWORLD
+softdepend:
+  - LiteBans
 commands:
   automod:
     description: 'AutoMod command'

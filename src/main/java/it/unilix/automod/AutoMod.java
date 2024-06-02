@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Objects;
 
@@ -88,7 +89,7 @@ public final class AutoMod extends JavaPlugin {
         getLogger().info("Hooking into LiteBans...");
         if(getServer().getPluginManager().getPlugin("LiteBans") != null) {
             getLogger().info("LiteBans has been found. Hooking into LiteBans...");
-            this.liteBans = new LiteBans(this);
+            liteBans = new LiteBans(JavaPlugin.getPlugin(AutoMod.class));
             liteBans.register();
         }else {
             getLogger().warning("LiteBans has not been found. Some features may not work properly.");
