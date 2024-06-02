@@ -52,7 +52,15 @@ public class CacheManager {
 
         try {
             @SuppressWarnings("unchecked")
-            ArrayList<Cache> caches = (ArrayList<Cache>) file.getObj2("caches", List.class);
+            ArrayList<Object> cachesObj = (ArrayList<Object>) file.getObj2("caches", ArrayList.class);
+            ArrayList<Cache> caches = new ArrayList<>();
+
+            for (Object obj : cachesObj) {
+                if (obj instanceof HashMap) {
+                    HashMap<String, Object> cacheMap = (HashMap<String, Object>) obj;
+                    caches.add(new Cache(cacheMap));
+                }
+            }
 
             cacheList.addAll(caches);
             file.save();
