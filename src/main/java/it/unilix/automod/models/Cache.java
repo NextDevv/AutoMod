@@ -1,4 +1,6 @@
 package it.unilix.automod.models;
 
-public class Cache {
+import lombok.Getter;
+
+public record Cache(String message, String censored, boolean toxic) {
 }

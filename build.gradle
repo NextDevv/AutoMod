@@ -1,9 +1,11 @@
 plugins {
     id 'java'
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '8.0.0'
 }
 
 group = 'it.unilix'
-version = '0.0.1'
+version = '0.0.4'
 
 repositories {
     mavenCentral()
@@ -17,8 +19,15 @@ repositories {
     }
 }
 
+def ktor_version = "2.3.11"
+
 dependencies {
-compileOnly "org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT"
+    compileOnly "org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT"
+    implementation group: 'org.jetbrains', name: 'annotations', version:'22.0.0'
+    implementation group: 'org.projectlombok', name: 'lombok', version:'1.18.22'
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version:'1.18.22'
+    implementation group: 'io.lettuce', name: 'lettuce-core', version:'6.2.5.RELEASE'
+    implementation files("libs/JsonFlow.jar")
 }
 
 def targetJavaVersion = 17
