@@ -104,7 +104,8 @@ public final class AutoMod extends JavaPlugin {
         getLogger().info("=== AutoMod ===");
 
         getLogger().info("Shutting down Redis connection...");
-        redisManager.close();
+        if(redisManager != null)
+            redisManager.close();
 
         getLogger().info("Saving caches...");
         cacheManager.save();

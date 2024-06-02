@@ -51,7 +51,9 @@ public class CacheManager {
         file.load();
 
         try {
-            @SuppressWarnings("unchecked") ArrayList<Cache> caches = (ArrayList<Cache>) file.getFileObj(ArrayList.class);
+            @SuppressWarnings("unchecked")
+            ArrayList<Cache> caches = (ArrayList<Cache>) file.getObj2("caches", List.class);
+
             cacheList.addAll(caches);
             file.save();
         }catch (Exception e) {
@@ -66,7 +68,7 @@ public class CacheManager {
 
         JsonFile file = new JsonFile(new File(folder, "cache.json"));
         file.createIfNotExists();
-        file.setFileObj(cacheList);
+        file.set("caches", cacheList);
         file.save();
     }
 
