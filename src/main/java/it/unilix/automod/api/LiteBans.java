@@ -99,4 +99,8 @@ public class LiteBans {
             }
         }.runTask(plugin);
     }
+
+    public boolean isMuted(UUID uuid) {
+        return Database.get().isPlayerMuted(uuid, null);
+    }
 }

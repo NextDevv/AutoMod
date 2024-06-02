@@ -49,6 +49,10 @@ public class MuteManager {
     }
 
     public static boolean isMuted(UUID player) {
+        if(plugin.getLiteBans().isMuted(player)) {
+            return true;
+        }
+
         return mutedPlayers.containsKey(player);
     }
 
