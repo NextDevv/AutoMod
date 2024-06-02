@@ -13,3 +13,14 @@ commands:
     aliases:
     - am
     - autom
+
+permissions:
+  automod.command:
+      description: 'AutoMod command'
+      default: op
+  automod.bypass:
+    description: 'Bypass AutoMod'
+    default: op
+  automod.staff:
+    description: 'Staff AutoMod'
+    default: op

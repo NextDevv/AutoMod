@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'it.unilix'
-version = '0.2.6-alpha'
+version = '0.2.7-alpha'
 
 repositories {
     mavenCentral()
@@ -19,8 +19,6 @@ repositories {
     }
     maven { url = "https://jitpack.io" }
 }
-
-def ktor_version = "2.3.11"
 
 dependencies {
     compileOnly "org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT"

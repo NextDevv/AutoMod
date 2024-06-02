@@ -61,7 +61,11 @@ public class RedisManager extends RedisAbstract {
                             MuteManager.clearWarnings(target);
                             break;
                         case CHAT:
-                            Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', jsonObject.get("message").getAsString()));
+                            Bukkit.getOnlinePlayers().forEach(player -> {
+                                if(!player.hasPermission("automod.staff"))
+                                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', jsonObject.get("message").getAsString()));
+                                else player.sendMessage(ChatColor.translateAlternateColorCodes('&', jsonObject.get("unfilteredMessage").getAsString()));
+                            });
                             break;
                     }
                 }

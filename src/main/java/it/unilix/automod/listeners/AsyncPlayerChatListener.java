@@ -29,8 +29,9 @@ public class AsyncPlayerChatListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
+        if(player.hasPermission("automod.bypass") || player.isOp())
+            return;
         MuteManager.checkPlayer(player);
-
 
         event.setCancelled(true);
         if(MuteManager.isMuted(event.getPlayer().getUniqueId())) {
@@ -87,13 +88,17 @@ public class AsyncPlayerChatListener implements Listener {
                         }
                     }
                     plugin.getCacheManager().addCache(new Cache(message, censoredMessage, isToxic));
-                    event.getRecipients().forEach(recipient -> recipient.sendMessage(format.replace(message, censoredMessage)));
+                    event.getRecipients().forEach(recipient -> {
+                        if(!recipient.hasPermission("automod.staff"))
+                            recipient.sendMessage(format.replace(message, censoredMessage));
+                        else recipient.sendMessage(format);
+                    });
 
-                    ChatEvent chatEvent = new ChatEvent(player, format.replace(message, censoredMessage));
+                    ChatEvent chatEvent = new ChatEvent(player, format.replace(message, censoredMessage), format);
                     plugin.getRedisManager().publish(plugin.getGson().toJsonTree(chatEvent).getAsJsonObject());
                     this.cancel();
                 }catch (InterruptedException | ExecutionException | URISyntaxException e) {
-                    e.printStackTrace();
+                    e.fillInStackTrace();
                 }
             }
         }.runTaskAsynchronously(plugin);

@@ -1,5 +1,6 @@
 package it.unilix.automod.manager;
 
+import com.google.gson.internal.LinkedTreeMap;
 import it.unilix.automod.AutoMod;
 import it.unilix.automod.models.Cache;
 import it.unilix.json.JsonFile;
@@ -7,9 +8,7 @@ import lombok.Getter;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class CacheManager {
@@ -23,6 +22,8 @@ public class CacheManager {
     }
 
     public void addCache(Cache cache) {
+        if(cacheList.stream().anyMatch(c -> c.message().equals(cache.message())))
+            return;
         cacheList.add(cache);
     }
 
@@ -51,18 +52,16 @@ public class CacheManager {
         file.load();
 
         try {
-            @SuppressWarnings("unchecked")
-            ArrayList<Object> cachesObj = (ArrayList<Object>) file.getObj2("caches", ArrayList.class);
+            ArrayList<?> cachesObj = (ArrayList<?>) file.getObj2("caches", ArrayList.class);
             ArrayList<Cache> caches = new ArrayList<>();
 
             for (Object obj : cachesObj) {
-                if (obj instanceof HashMap) {
-                    HashMap<String, Object> cacheMap = (HashMap<String, Object>) obj;
-                    caches.add(new Cache(cacheMap));
-                }
+                LinkedTreeMap<String, Object> cacheMap = (LinkedTreeMap<String, Object>) obj;
+                caches.add(new Cache(cacheMap));
             }
 
             cacheList.addAll(caches);
+            plugin.getLogger().info("Loaded " + caches.size() + " cache(s).");
             file.save();
         }catch (Exception e) {
             plugin.getLogger().severe("Failed to load cache file.");

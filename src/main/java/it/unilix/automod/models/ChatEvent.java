@@ -11,12 +11,14 @@ public class ChatEvent {
     private UUID player;
     private String displayName;
     private String message;
+    private String unfilteredMessage;
     private ModEvent event = ModEvent.CHAT;
 
-    public ChatEvent(Player player, String message) {
+    public ChatEvent(Player player, String message, String unfilteredMessage) {
         this.player = player.getUniqueId();
         this.displayName = player.getDisplayName();
         this.message = message;
+        this.unfilteredMessage = unfilteredMessage;
     }
 
     public ChatEvent(UUID player, String displayName, String message) {
