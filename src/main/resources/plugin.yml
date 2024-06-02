@@ -3,3 +3,11 @@ version: '${version}'
 main: it.unilix.automod.AutoMod
 api-version: '1.20'
 load: STARTUP
+commands:
+  automod:
+    description: 'AutoMod command'
+    usage: '/automod'
+    permission: 'automod.command'
+    aliases:
+    - am
+    - autom

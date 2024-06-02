@@ -2,7 +2,10 @@ package it.unilix.automod;
 
 import com.google.gson.Gson;
 import io.lettuce.core.RedisClient;
+import it.unilix.automod.api.LiteBans;
 import it.unilix.automod.api.PerspectiveAPI;
+import it.unilix.automod.commands.CommandManager;
+import it.unilix.automod.commands.sub.ReloadCommand;
 import it.unilix.automod.configs.ConfigLoader;
 import it.unilix.automod.configs.Messages;
 import it.unilix.automod.configs.Settings;
@@ -11,16 +14,26 @@ import it.unilix.automod.manager.CacheManager;
 import it.unilix.automod.redis.RedisManager;
 import it.unilix.automod.utils.ApiKeyValidator;
 import it.unilix.automod.utils.MuteManager;
+import litebans.api.Database;
 import lombok.Getter;
+import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.Objects;
 
 @Getter
 public final class AutoMod extends JavaPlugin {
+    @Setter
     private Settings settings;
+    @Setter
     private Messages messages;
     private RedisManager redisManager;
     private PerspectiveAPI perspectiveAPI;
+    private LiteBans liteBans;
+
     private final CacheManager cacheManager = new CacheManager(this);
+    private final CommandManager commandManager = new CommandManager(this);
 
     @Override
     public void onEnable() {
@@ -46,6 +59,7 @@ public final class AutoMod extends JavaPlugin {
 
         getLogger().info("Connecting to Redis...");
         try {
+            if(!settings.isRequiresMultiInstance()) return;
             RedisClient redisClient = RedisClient.create(settings.getRedisUri());
             redisManager = new RedisManager(redisClient, 4, this);
         }catch (Exception e) {
@@ -65,6 +79,20 @@ public final class AutoMod extends JavaPlugin {
 
         getLogger().info("Loading caches...");
         cacheManager.load();
+
+        getLogger().info("Loading commands...");
+        Objects.requireNonNull(getCommand("automod")).setExecutor(commandManager);
+        Objects.requireNonNull(getCommand("automod")).setTabCompleter(commandManager);
+        commandManager.registerCommand(new ReloadCommand());
+
+        getLogger().info("Hooking into LiteBans...");
+        if(getServer().getPluginManager().getPlugin("LiteBans") != null) {
+            getLogger().info("LiteBans has been found. Hooking into LiteBans...");
+            this.liteBans = new LiteBans(this);
+            liteBans.register();
+        }else {
+            getLogger().warning("LiteBans has not been found. Some features may not work properly.");
+        }
 
         getLogger().info("AutoMod has been enabled.");
         getLogger().info("=== AutoMod ===");

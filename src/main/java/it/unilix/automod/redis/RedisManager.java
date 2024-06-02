@@ -26,6 +26,7 @@ public class RedisManager extends RedisAbstract {
 	}
 
     public void publish(JsonObject jsonObject) {
+        if(!plugin.getSettings().isRequiresMultiInstance()) return;
         jsonObject.addProperty("server", getServerName());
         getConnectionAsync(c -> c.publish("auto-mod", jsonObject.toString()));
     }

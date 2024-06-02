@@ -23,6 +23,10 @@ public class MuteManager {
     public static void mutePlayer(UUID player) {
         mutedPlayers.put(player, System.currentTimeMillis());
 
+        if(plugin.getSettings().isLiteBanSupport()) {
+            plugin.getLiteBans().mutePlayer(player);
+        }
+
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("event", ModEvent.MUTE.getName());
         jsonObject.addProperty("player", player.toString());
@@ -32,6 +36,10 @@ public class MuteManager {
 
     public static void unmutePlayer(UUID player) {
         mutedPlayers.remove(player);
+
+        if(plugin.getSettings().isLiteBanSupport()) {
+            plugin.getLiteBans().unmutePlayer(player);
+        }
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("event", ModEvent.UNMUTE.getName());
@@ -49,6 +57,10 @@ public class MuteManager {
     }
 
     public static void warnPlayer(UUID player) {
+        if (plugin.getSettings().isLiteBanSupport()) {
+            plugin.getLiteBans().warnPlayer(player);
+        }
+
         if (warnings.containsKey(player)) {
             warnings.put(player, new Pair<>(warnings.get(player).getFirst(), warnings.get(player).getSecond() + 1));
         } else {
@@ -66,6 +78,10 @@ public class MuteManager {
 
     public static void clearWarnings(UUID player) {
         warnings.remove(player);
+
+        if(plugin.getSettings().isLiteBanSupport()) {
+            plugin.getLiteBans().clearWarnings(player);
+        }
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("event", ModEvent.CLEAR_WARNINGS.getName());

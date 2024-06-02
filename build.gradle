@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'it.unilix'
-version = '0.2.4-alpha'
+version = '0.2.5-alpha'
 
 repositories {
     mavenCentral()
@@ -17,12 +17,14 @@ repositories {
         name = "sonatype"
         url = "https://oss.sonatype.org/content/groups/public/"
     }
+    maven { url = "https://jitpack.io" }
 }
 
 def ktor_version = "2.3.11"
 
 dependencies {
     compileOnly "org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT"
+    compileOnly 'com.gitlab.ruany:LiteBansAPI:0.5.0'
     implementation group: 'org.jetbrains', name: 'annotations', version:'22.0.0'
     implementation group: 'org.projectlombok', name: 'lombok', version:'1.18.22'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version:'1.18.22'
@@ -46,6 +48,13 @@ tasks.withType(JavaCompile).configureEach {
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         options.release.set(targetJavaVersion)
     }
+}
+
+shadowJar {
+    // remove the -all suffix
+    archiveBaseName.set("AutoMod")
+    archiveAppendix.set("")
+    archiveClassifier.set("")
 }
 
 processResources {

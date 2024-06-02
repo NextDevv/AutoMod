@@ -31,6 +31,7 @@ public class AsyncPlayerChatListener implements Listener {
         Player player = event.getPlayer();
         MuteManager.checkPlayer(player);
 
+
         event.setCancelled(true);
         if(MuteManager.isMuted(event.getPlayer().getUniqueId())) {
             msg(player,plugin.getMessages().getMuted());

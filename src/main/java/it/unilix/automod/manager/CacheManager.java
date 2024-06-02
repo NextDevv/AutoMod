@@ -7,6 +7,7 @@ import lombok.Getter;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +35,7 @@ public class CacheManager {
     }
 
     public void load() {
-        folder = new File(plugin.getDataFolder().getAbsolutePath() + File.pathSeparator + "cache");
+        folder = new File(plugin.getDataFolder().getAbsolutePath(), "cache");
         if (!folder.exists()) {
             boolean successful = folder.mkdirs();
             if (!successful) {
@@ -49,9 +50,13 @@ public class CacheManager {
         }
         file.load();
 
-        @SuppressWarnings("unchecked") ArrayList<Cache> caches = (ArrayList<Cache>) file.getFileObj(ArrayList.class);
-        cacheList.addAll(caches);
-        file.save();
+        try {
+            @SuppressWarnings("unchecked") ArrayList<Cache> caches = (ArrayList<Cache>) file.getFileObj(ArrayList.class);
+            cacheList.addAll(caches);
+            file.save();
+        }catch (Exception e) {
+            plugin.getLogger().severe("Failed to load cache file.");
+        }
     }
 
     public void save() {
