@@ -93,7 +93,8 @@ public class AsyncPlayerChatListener implements Listener {
                     });
 
                     ChatEvent chatEvent = new ChatEvent(player, format.replace(message, censoredMessage), format);
-                    plugin.getRedisManager().publish(plugin.getGson().toJsonTree(chatEvent).getAsJsonObject());
+                    if(plugin.getSettings().isRequiresMultiInstance())
+                        plugin.getRedisManager().publish(plugin.getGson().toJsonTree(chatEvent).getAsJsonObject());
                     this.cancel();
                 }catch (InterruptedException | ExecutionException | URISyntaxException e) {
                     e.fillInStackTrace();

@@ -110,7 +110,9 @@ public final class AutoMod extends JavaPlugin {
             redisManager.close();
 
         getLogger().info("Saving caches...");
-        cacheManager.save();
+        if(cacheManager.folderInitialized())
+            cacheManager.save();
+        else getLogger().warning("Cache folder is not initialized. Caches will not be saved.");
 
         getLogger().info("AutoMod has been disabled.");
         getLogger().info("=== AutoMod ===");

@@ -26,7 +26,8 @@ public class MuteManager {
         jsonObject.addProperty("event", ModEvent.MUTE.getName());
         jsonObject.addProperty("player", player.toString());
 
-        plugin.getRedisManager().publish(jsonObject);
+        if(plugin.getSettings().isRequiresMultiInstance())
+            plugin.getRedisManager().publish(jsonObject);
     }
 
     public static void unmutePlayer(UUID player) {
@@ -40,7 +41,8 @@ public class MuteManager {
         jsonObject.addProperty("event", ModEvent.UNMUTE.getName());
         jsonObject.addProperty("player", player.toString());
 
-        plugin.getRedisManager().publish(jsonObject);
+        if(plugin.getSettings().isRequiresMultiInstance())
+            plugin.getRedisManager().publish(jsonObject);
     }
 
     public static boolean isMuted(UUID player) {
@@ -85,7 +87,8 @@ public class MuteManager {
         jsonObject.addProperty("event", ModEvent.CLEAR_WARNINGS.getName());
         jsonObject.addProperty("player", player.toString());
 
-        plugin.getRedisManager().publish(jsonObject);
+        if(plugin.getSettings().isRequiresMultiInstance())
+            plugin.getRedisManager().publish(jsonObject);
     }
 
     /*public static void updater(AutoMod plugin) {

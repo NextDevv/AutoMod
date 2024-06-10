@@ -17,6 +17,10 @@ public class CacheManager {
     private @Nullable File folder = null;
     private final AutoMod plugin;
 
+    public boolean folderInitialized() {
+        return folder != null && folder.exists();
+    }
+
     public CacheManager(AutoMod plugin) {
         this.plugin = plugin;
     }
