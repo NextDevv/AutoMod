@@ -3,16 +3,11 @@ package it.unilix.automod.utils;
 import com.google.gson.JsonObject;
 import it.unilix.automod.AutoMod;
 import it.unilix.automod.enums.ModEvent;
-import kotlin.Pair;
 import lombok.Getter;
-import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class MuteManager {
     @Getter
@@ -49,9 +44,9 @@ public class MuteManager {
     }
 
     public static boolean isMuted(UUID player) {
-        if(plugin.getLiteBans().isMuted(player)) {
-            return true;
-        }
+        if(plugin.getSettings().isLiteBanSupport())
+            if(plugin.getLiteBans().isMuted(player))
+                return true;
 
         return mutedPlayers.containsKey(player);
     }
@@ -61,9 +56,8 @@ public class MuteManager {
     }
 
     public static void warnPlayer(UUID player) {
-        if (plugin.getSettings().isLiteBanSupport()) {
+        if (plugin.getSettings().isLiteBanSupport())
             plugin.getLiteBans().warnPlayer(player);
-        }
 
         if (warnings.containsKey(player)) {
             warnings.put(player, new Pair<>(warnings.get(player).getFirst(), warnings.get(player).getSecond() + 1));

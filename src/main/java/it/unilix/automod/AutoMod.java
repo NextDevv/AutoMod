@@ -60,9 +60,10 @@ public final class AutoMod extends JavaPlugin {
 
         getLogger().info("Connecting to Redis...");
         try {
-            if(!settings.isRequiresMultiInstance()) return;
-            RedisClient redisClient = RedisClient.create(settings.getRedisUri());
-            redisManager = new RedisManager(redisClient, 4, this);
+            if(settings.isRequiresMultiInstance()) {
+                RedisClient redisClient = RedisClient.create(settings.getRedisUri());
+                redisManager = new RedisManager(redisClient, 4, this);
+            }
         }catch (Exception e) {
             getLogger().severe("Failed to connect to Redis. Make sure to have a Redis server running.");
             getLogger().severe("Disabling AutoMod...");

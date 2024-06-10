@@ -2,10 +2,11 @@ plugins {
     id 'java'
     id 'maven-publish'
     id 'com.github.johnrengelman.shadow' version '8.0.0'
+    id 'org.jetbrains.kotlin.jvm'
 }
 
 group = 'it.unilix'
-version = '0.2.7-alpha'
+version = '0.2.9-alpha'
 
 repositories {
     mavenCentral()
@@ -26,8 +27,13 @@ dependencies {
     implementation group: 'org.jetbrains', name: 'annotations', version:'22.0.0'
     implementation group: 'org.projectlombok', name: 'lombok', version:'1.18.22'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version:'1.18.22'
-    implementation group: 'io.lettuce', name: 'lettuce-core', version:'6.2.5.RELEASE'
-    implementation files("libs/JsonFlow.jar")
+    compileOnly group: 'io.lettuce', name: 'lettuce-core', version:'6.2.5.RELEASE'
+    implementation files("libs/JsonFlow-1.0-SNAPSHOT.jar")
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 def targetJavaVersion = 17

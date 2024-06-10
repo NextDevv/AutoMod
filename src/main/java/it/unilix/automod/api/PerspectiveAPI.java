@@ -1,9 +1,9 @@
 package it.unilix.automod.api;
 
 import it.unilix.automod.configs.Settings;
+import it.unilix.automod.utils.Pair;
 import it.unilix.json.JsonObject;
 import it.unilix.json.JsonString;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
