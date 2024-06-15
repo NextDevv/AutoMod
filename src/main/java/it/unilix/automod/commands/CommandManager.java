@@ -1,16 +1,20 @@
 package it.unilix.automod.commands;
 
 import it.unilix.automod.AutoMod;
+import it.unilix.automod.utils.ListUtils;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -95,7 +99,19 @@ public class CommandManager implements CommandExecutor, TabExecutor {
             List<String> completions = new ArrayList<>();
             arguments.forEach((index, arg) -> {
                 if(args.length - 1 < index) {
-                    completions.add(arg);
+                    String add = arg;
+                    switch (add) {
+                        case "<player>":
+                            add = ListUtils.toString(Bukkit.getOnlinePlayers().stream().map(Player::getName).toArray(String[]::new), ", ");
+                            break;
+
+                        /* More Completions */
+                        /* . . . */
+                        default:
+                            break;
+                    }
+
+                    completions.addAll(Arrays.stream((add.split(", "))).toList());
                 }
             });
 

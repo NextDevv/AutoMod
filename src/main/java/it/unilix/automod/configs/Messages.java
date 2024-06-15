@@ -9,4 +9,5 @@ public class Messages {
     String warned = "You have been warned!";
     String usage = "&cUsage: /automod <subcommand> [args]";
     String subNotFound = "&cSubcommand not found!";
+    String blockMessage = "&cYour message has been blocked!";
 }

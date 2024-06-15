@@ -28,7 +28,7 @@ dependencies {
     implementation group: 'org.projectlombok', name: 'lombok', version:'1.18.22'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version:'1.18.22'
     compileOnly group: 'io.lettuce', name: 'lettuce-core', version:'6.2.5.RELEASE'
-    implementation files("libs/JsonFlow-1.0-SNAPSHOT.jar")
+    implementation files("libs/JsonFlow-1.4.2.jar")
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 }
 

@@ -16,6 +16,7 @@ public class CacheManager {
     private final List<Cache> cacheList = new ArrayList<>();
     private @Nullable File folder = null;
     private final AutoMod plugin;
+    private long lastDataSave = 0;
 
     public boolean folderInitialized() {
         return folder != null && folder.exists();
@@ -70,6 +71,19 @@ public class CacheManager {
         }catch (Exception e) {
             plugin.getLogger().severe("Failed to load cache file.");
         }
+
+        File lastSave = new File(folder, "lastSave");
+        if(lastSave.exists()) {
+            lastDataSave = lastSave.lastModified();
+        }
+
+        if(System.currentTimeMillis() - lastDataSave > (long) plugin.getSettings().getCacheExpireDays() * 24 * 60 * 60 * 1000) {
+            clearCache();
+            save();
+            lastSave.delete();
+
+            plugin.getLogger().warning("Cache expired. Cleared all caches.");
+        }
     }
 
     public void save() {
@@ -81,6 +95,9 @@ public class CacheManager {
         file.createIfNotExists();
         file.set("caches", cacheList);
         file.save();
+
+        lastDataSave = System.currentTimeMillis();
+        new File(folder, "lastSave").setLastModified(lastDataSave);
     }
 
     public boolean isCached(String message) {
