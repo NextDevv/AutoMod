@@ -30,7 +30,6 @@ After the initial run, a configuration file will be generated in the `plugins/Au
 ## Commands
 
 - `/automod reload` - Reloads the plugin configuration.
-- `/automod status` - Displays the current status of AutoMod.
 
 ## Permissions
 
