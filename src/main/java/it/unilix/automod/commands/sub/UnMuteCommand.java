@@ -1,6 +1,7 @@
 package it.unilix.automod.commands.sub;
 
 import it.unilix.automod.commands.ICommand;
+import it.unilix.automod.utils.ChatUtils;
 import it.unilix.automod.utils.MuteManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -36,19 +37,19 @@ public class UnMuteCommand implements ICommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if(args.length < 2) {
-            sender.sendMessage("Usage: /automod unmute <player>");
+        if(args.length < 1) {
+            ChatUtils.msg(sender, "Usage: /automod unmute <player>");
             return;
         }
 
-        String playerName = args[1];
+        String playerName = args[0];
         Player player = Bukkit.getPlayer(playerName);
         if(player == null) {
-            sender.sendMessage("Player not found.");
+            ChatUtils.msg(sender, "Player not found.");
             return;
         }
 
         MuteManager.unmutePlayer(player.getUniqueId());
-        sender.sendMessage("Player unmuted.");
+        ChatUtils.msg(sender, "Player unmuted.");
     }
 }

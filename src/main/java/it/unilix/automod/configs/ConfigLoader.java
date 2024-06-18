@@ -1,7 +1,6 @@
 package it.unilix.automod.configs;
 
 import it.unilix.automod.AutoMod;
-import it.unilix.json.JsonFile;
 import it.unilix.yaml.YamlFile;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +44,7 @@ public class ConfigLoader {
             }
         }
 
-        JsonFile file = new JsonFile(new File(folder, "messages.json"));
+        YamlFile file = new YamlFile(new File(folder, "messages.yml"));
         Messages messages;
         if(!file.exists()) {
             messages = new Messages();

@@ -6,7 +6,6 @@ import it.unilix.json.JsonObject;
 import it.unilix.json.JsonString;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -59,8 +58,14 @@ public class PerspectiveAPI {
                     List<Character> chars = new ArrayList<>(text.chars().mapToObj(e -> (char) e).toList());
                     boolean toxic = false;
 
-                    System.out.println("Response: " + object);
-                    System.out.println("Span scores: " + spanScores);
+                    if(settings.isDebug()) {
+                        System.out.println("[DEBUG] Response: " + object);
+                        System.out.println("[DEBUG] Span scores: " + spanScores);
+                        if(settings.isVerbose()) {
+                            System.out.println("[DEBUG/VERBOSE] Text: " + text);
+                            System.out.println("[DEBUG/VERBOSE] Chars: " + chars);
+                        }
+                    }
 
                     for (int i = 0; i < spanScores.size(); i++) {
                         JsonObject spanScore = spanScores.get(i);
@@ -74,7 +79,9 @@ public class PerspectiveAPI {
                                 if(chars.get(j) != ' ' && chars.get(j) != '\n' && chars.get(j) != '\t' && chars.get(j) != '\r')
                                     chars.set(j, '*');
                             });
-                            System.out.println("Toxic span: " + text.substring(begin, end));
+                            if(settings.isDebug()) {
+                                System.out.println("[DEBUG] Toxic span: " + text.substring(begin, end));
+                            }
                         }
                     }
                     return new Pair<>(chars.stream().map(String::valueOf).reduce("", String::concat), toxic);

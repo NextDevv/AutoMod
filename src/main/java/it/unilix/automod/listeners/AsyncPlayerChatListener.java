@@ -7,7 +7,6 @@ import it.unilix.automod.utils.LinkDetector;
 import it.unilix.automod.utils.MuteManager;
 import it.unilix.automod.utils.Pair;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -119,6 +118,7 @@ public class AsyncPlayerChatListener implements Listener {
             case TRIWM:
                 if (warnings == 1) {
                     msg(player, plugin.getMessages().getWarned());
+                    broadcastMessage(event, player, message, censoredMessage, format);
                 } else if (warnings == 2) {
                     msg(player, plugin.getMessages().getWarned());
                 } else if (warnings >= MAX_WARNINGS) {

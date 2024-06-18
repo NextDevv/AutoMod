@@ -26,7 +26,12 @@ public class Settings {
     Long muteTime = 60000L;
     @YamlComment("Warn expire time in milliseconds.")
     Long warnExpireTime = 900000L;
-    @YamlComment("Moderation type. [triwm, cancel, censor], check the documentation for more information. [https://docs.nextdevv.com/automod.html]")
+    @YamlComment({
+            "Moderation type. [TRIWM, CANCEL, CENSOR], check the documentation for more information. [https://docs.nextdevv.com/automod.html]",
+            "TRIWM: 1st Censor message + Warning; 2nd Message block + Warning; 3rd Mute",
+            "CANCEL: Cancel the message if it is toxic",
+            "CENSOR: Censor the message if it is toxic"
+    })
     ModerationType moderationType = ModerationType.TRIWM;
     @YamlComment("Blocked words. If a message contains any of these words, it will not be sent.")
     String[] blockedWords = {"badword1", "badword2"};
@@ -48,6 +53,12 @@ public class Settings {
     String unmuteCommand = "/unmute {player}";
     String warnCommand = "/warn {player} {reason}";
     String unwarnCommand = "/unwarn {player}";
+
+    // DEVELOPMENT SECTION
+    @YamlComment("Enable debug mode.")
+    boolean debug = false;
+    @YamlComment("Enable verbose mode.")
+    boolean verbose = false;
 
 
     @Override
