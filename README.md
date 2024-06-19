@@ -33,7 +33,8 @@ After the initial run, a configuration file will be generated in the `plugins/Au
 
 ## Permissions
 
-- `automod.admin` - Access to all AutoMod commands and features.
+- `automod.bypass` - Bypasses all AutoMod filters
+- `automod.staff` - Can see the original message
 
 ## Usage
 
