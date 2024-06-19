@@ -1,10 +1,10 @@
-# AutoMod - Coming Soon
+# AutoMod 
 
 AutoMod is a Minecraft Spigot plugin designed to enhance in-game chat moderation by using AI, specifically the Perspective API, to censor and block harmful messages. The plugin also blocks links, domains, and IP addresses (both IPv4 and IPv6). Additionally, AutoMod supports multi-instance servers through Redis communication and utilizes caches to speed up the moderation process, with configurable cache expiration.
 
 # Docs
 
-[Coming soon for AutoMod...](https://docs.nextdevv.com/)
+[Documentation](https://docs.nextdevv.com/automod.html)
 
 ## Features
 
