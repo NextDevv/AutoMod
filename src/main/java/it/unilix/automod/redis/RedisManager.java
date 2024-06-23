@@ -54,7 +54,7 @@ public class RedisManager extends RedisAbstract {
                             break;
                         case WARN:
                             MuteManager.warnPlayer(target);
-                            if(MuteManager.getWarnings(target) >= 2)
+                            if (MuteManager.getWarnings(target) >= 2)
                                 MuteManager.mutePlayer(target);
                             break;
                         case CLEAR_WARNINGS:
@@ -62,16 +62,22 @@ public class RedisManager extends RedisAbstract {
                             break;
                         case CHAT:
                             Bukkit.getOnlinePlayers().forEach(player -> {
-                                if(!player.hasPermission("automod.staff"))
+                                if (!player.hasPermission("automod.staff"))
                                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', jsonObject.get("message").getAsString()));
-                                else player.sendMessage(ChatColor.translateAlternateColorCodes('&', jsonObject.get("unfilteredMessage").getAsString()));
+                                else
+                                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', jsonObject.get("unfilteredMessage").getAsString()));
                             });
                             break;
                     }
                 }
             });
-			c.async().subscribe("auto-mod");
+            c.async().subscribe("auto-mod");
         });
+    }
+
+    public boolean connected() {
+        if(lettuceRedisClient == null) return false;
+        return lettuceRedisClient.connect().isOpen();
     }
 
 	public String getServerName() {

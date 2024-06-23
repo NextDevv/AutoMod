@@ -33,8 +33,18 @@ public class Settings {
             "CENSOR: Censor the message if it is toxic"
     })
     ModerationType moderationType = ModerationType.TRIWM;
-    @YamlComment("Blocked words. If a message contains any of these words, it will not be sent.")
+    @YamlComment("Blocked words. If a message contains any of these words, it will be filtered.")
     String[] blockedWords = {"badword1", "badword2"};
+    @YamlComment("Enables the moderation on signs too.")
+    boolean signModeration = true;
+
+    // ANTI-SPAM SECTION
+    @YamlComment("Message interval in milliseconds.")
+    Long messageInterval = 1000L;
+    @YamlComment("Max words equal to the last message. Greater or equal to this value will be considered spam.")
+    int maxWords = 5;
+    @YamlComment("Command interval in milliseconds.")
+    Long commandInterval = 3000L;
 
     // CACHE SECTION
     @YamlComment("Cache expire time in days.")

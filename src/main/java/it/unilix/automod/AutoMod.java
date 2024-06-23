@@ -6,11 +6,14 @@ import it.unilix.automod.api.LiteBans;
 import it.unilix.automod.api.PerspectiveAPI;
 import it.unilix.automod.commands.CommandManager;
 import it.unilix.automod.commands.sub.ReloadCommand;
+import it.unilix.automod.commands.sub.StatusCommand;
 import it.unilix.automod.commands.sub.UnMuteCommand;
 import it.unilix.automod.configs.ConfigLoader;
 import it.unilix.automod.configs.Messages;
 import it.unilix.automod.configs.Settings;
 import it.unilix.automod.listeners.AsyncPlayerChatListener;
+import it.unilix.automod.listeners.PlayerCommandPreprocessListener;
+import it.unilix.automod.listeners.SignChangeListener;
 import it.unilix.automod.manager.CacheManager;
 import it.unilix.automod.redis.RedisManager;
 import it.unilix.automod.utils.ApiKeyValidator;
@@ -122,6 +125,9 @@ public final class AutoMod extends JavaPlugin {
     private void registerListeners() {
         getLogger().info("Registering listeners...");
         getServer().getPluginManager().registerEvents(new AsyncPlayerChatListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerCommandPreprocessListener(getMessages()), this);
+        // TODO: Fix this
+        // getServer().getPluginManager().registerEvents(new SignChangeListener(this), this);
     }
 
     private void connectToPerspectiveAPI() {
@@ -141,6 +147,7 @@ public final class AutoMod extends JavaPlugin {
 
         commandManager.registerCommand(new ReloadCommand());
         commandManager.registerCommand(new UnMuteCommand());
+        commandManager.registerCommand(new StatusCommand());
     }
 
     private void hookIntoLiteBans() {

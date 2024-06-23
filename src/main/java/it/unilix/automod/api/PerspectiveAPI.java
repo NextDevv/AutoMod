@@ -87,4 +87,30 @@ public class PerspectiveAPI {
                     return new Pair<>(chars.stream().map(String::valueOf).reduce("", String::concat), toxic);
                 });
     }
+
+    public boolean isConnected() {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=" + apiKey))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(
+                        """
+                                {
+                                    "comment": {
+                                        "text": "test"
+                                    },
+                                    "requestedAttributes": {
+                                        "TOXICITY": {}
+                                    },
+                                    "spanAnnotations": true
+                                }
+                              """
+                ))
+                .build();
+
+        try {
+            return client.send(request, HttpResponse.BodyHandlers.ofString()).statusCode() == 200;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

@@ -107,4 +107,8 @@ public class CacheManager {
     public Cache getCache(String message) {
         return cacheList.stream().filter(cache -> cache.message().equals(message)).findFirst().orElse(null);
     }
+
+    public boolean isLoaded() {
+        return folder != null;
+    }
 }

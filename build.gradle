@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'it.unilix'
-version = '0.3.0-release'
+version = '0.3.3-alpha2'
 
 repositories {
     mavenCentral()
@@ -55,7 +55,6 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 shadowJar {
-    // remove the -all suffix
     archiveBaseName.set("AutoMod")
     archiveAppendix.set("")
     archiveClassifier.set("")

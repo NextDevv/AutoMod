@@ -12,16 +12,21 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AsyncPlayerChatListener implements Listener {
 
     private static final int MAX_WARNINGS = 3;
     private final AutoMod plugin;
+    private final HashMap<UUID, String> lastMessage = new HashMap<>();
 
     public AsyncPlayerChatListener(AutoMod plugin) {
         this.plugin = plugin;
@@ -36,12 +41,100 @@ public class AsyncPlayerChatListener implements Listener {
         MuteManager.checkPlayer(player);
         event.setCancelled(true);
 
-        if(Arrays.stream(plugin.getSettings().getBlockedWords()).anyMatch(event.getMessage()::contains))
+        if(isSpamming(player, event.getMessage())) {
+            lastMessage.put(player.getUniqueId(), event.getMessage());
             return;
+        }
+
+        if(Arrays.stream(plugin.getSettings().getBlockedWords()).anyMatch(event.getMessage().toLowerCase()::contains)) {
+            String message = event.getMessage().toLowerCase();
+            String blockedWord = Arrays.stream(plugin.getSettings().getBlockedWords())
+                    .filter(message::contains)
+                    .findFirst()
+                    .orElse(null);
+
+            if(blockedWord == null) {
+                if(plugin.getSettings().isDebug()) {
+                    plugin.getLogger().warning("[DEBUG] Blocked word not found in message: " + message);
+                    if(plugin.getSettings().isVerbose()) {
+                        plugin.getLogger().warning("[DEBUG/VERBOSE] Blocked words: " + Arrays.toString(plugin.getSettings().getBlockedWords()));
+                    }
+                }
+                return;
+            }
+
+            String censoredMessage = message.replace(blockedWord, "*".repeat(blockedWord.length()));
+            if(plugin.getSettings().isDebug()) {
+                plugin.getLogger().warning("[DEBUG] Blocked word found in message: " + message);
+                plugin.getLogger().warning("[DEBUG] Censored message: " + censoredMessage);
+            }
+
+            handleToxicMessage(event, player, event.getMessage(), censoredMessage, event.getFormat());
+
+            lastMessage.put(player.getUniqueId(), event.getMessage());
+            return;
+        }
         if (handleMute(player)) return;
         if (handleLinkDetection(event, player)) return;
 
         processMessageAsync(event, player);
+    }
+
+    private boolean isSpamming(Player player, String message) {
+        if(player.hasPermission("automod.staff")) return false;
+
+        if(!lastMessage.containsKey(player.getUniqueId())) {
+            lastMessage.put(player.getUniqueId(), message);
+            return false;
+        }
+
+        if(lastMessage.getOrDefault(player.getUniqueId(), "").equalsIgnoreCase(message)) {
+            msg(player, plugin.getMessages().getSpamming());
+            return true;
+        }
+
+        if(lastMessage.getOrDefault(player.getUniqueId(), "").toLowerCase().contains(message.toLowerCase())) {
+            msg(player, plugin.getMessages().getSpamming());
+            return true;
+        }
+
+        String[] words = message.split(" ");
+        String[] lastWords = lastMessage.getOrDefault(player.getUniqueId(), "").split(" ");
+
+        if(plugin.getSettings().isDebug()) {
+            plugin.getLogger().warning("[DEBUG] Message: " + Arrays.toString(words));
+            plugin.getLogger().warning("[DEBUG] Last message: " + Arrays.toString(lastWords));
+        }
+
+        var ref = new Object() {
+            int count = 0;
+        };
+
+        Arrays.stream(words).forEach(word -> {
+            if(plugin.getSettings().isDebug()) {
+                plugin.getLogger().warning("[DEBUG] Checking word: " + word);
+            }
+
+            if(Arrays.stream(lastWords).anyMatch(word::equalsIgnoreCase)) {
+                if(plugin.getSettings().isDebug()) {
+                    plugin.getLogger().warning("[DEBUG] Word found: " + word);
+                }
+
+                ref.count++;
+            }
+        });
+
+        if(ref.count >= plugin.getSettings().getMaxWords()) {
+            if(plugin.getSettings().isDebug()) {
+                plugin.getLogger().warning("[DEBUG] Spamming detected: " + ref.count);
+            }
+
+            msg(player, plugin.getMessages().getSpamming());
+            return true;
+        }
+
+        lastMessage.put(player.getUniqueId(), message);
+        return false;
     }
 
     private boolean handleMute(Player player) {
@@ -103,7 +196,7 @@ public class AsyncPlayerChatListener implements Listener {
         if (isToxic) {
             handleToxicMessage(event, player, message, censoredMessage, format);
         } else {
-            broadcastMessage(event, player, message, censoredMessage, format);
+            broadcastMessage(event, player, message, censoredMessage);
         }
     }
 
@@ -113,12 +206,12 @@ public class AsyncPlayerChatListener implements Listener {
 
         switch (plugin.getSettings().getModerationType()) {
             case CENSOR:
-                broadcastMessage(event, player, message, censoredMessage, format);
+                broadcastMessage(event, player, message, censoredMessage);
                 break;
             case TRIWM:
                 if (warnings == 1) {
                     msg(player, plugin.getMessages().getWarned());
-                    broadcastMessage(event, player, message, censoredMessage, format);
+                    broadcastMessage(event, player, message, censoredMessage);
                 } else if (warnings == 2) {
                     msg(player, plugin.getMessages().getWarned());
                 } else if (warnings >= MAX_WARNINGS) {
@@ -136,8 +229,9 @@ public class AsyncPlayerChatListener implements Listener {
     }
 
     private void broadcastMessage(
-            AsyncPlayerChatEvent event, Player player, String message, String censoredMessage, String format
+            AsyncPlayerChatEvent event, Player player, String message, String censoredMessage
     ) {
+        String format = String.format(event.getFormat(), player.getDisplayName(), message);
         event.getRecipients().forEach(recipient -> {
             if (!recipient.hasPermission("automod.staff")) {
                 recipient.sendMessage(format.replace(message, censoredMessage));

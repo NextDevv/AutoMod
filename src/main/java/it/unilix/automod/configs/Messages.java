@@ -10,4 +10,6 @@ public class Messages {
     String usage = "&cUsage: /automod <subcommand> [args]";
     String subNotFound = "&cSubcommand not found!";
     String blockMessage = "&cYour message has been blocked!";
+    String spamming = "&cYou are spamming!";
+    String spammingCommand = "&cYou are sending commands too fast.";
 }
