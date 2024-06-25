@@ -24,4 +24,13 @@ public class LinkDetector {
 
         return urls;
     }
+
+    public static String censor(String message) {
+        List<String> urls = detect(message);
+        for(String url : urls) {
+            message = message.replace(url, "*".repeat(url.length()));
+        }
+
+        return message;
+    }
 }

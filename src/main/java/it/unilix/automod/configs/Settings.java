@@ -8,6 +8,15 @@ import java.util.Map;
 
 @Getter
 public class Settings {
+    // PROXY SECTION
+    @YamlComment({
+            "Activate proxy mode.",
+            "If you are running this plugin on a BungeeCord server, set this to true.",
+            "Some features will be disabled if this is set to true."
+    })
+    boolean proxy = false;
+    @YamlComment("Ignored servers. If the player is on one of these servers, the plugin will not moderate the chat.")
+    String[] ignoreServers = {"lobby_1", "lobby_2", "vanilla"};
 
     // REDIS SECTION
     @YamlComment("Redis URI. If you are running multiple instances of this plugin, set this to the same URI.")
@@ -37,8 +46,11 @@ public class Settings {
     String[] blockedWords = {"badword1", "badword2"};
     @YamlComment("Enables the moderation on signs too.")
     boolean signModeration = true;
+    @YamlComment("Blacklisted commands. If a player tries to execute one of these commands, it will be blocked.")
+    String[] blacklistedCommands = {"/op", "/deop"};
 
     // ANTI-SPAM SECTION
+    boolean antiSpam = true;
     @YamlComment("Message interval in milliseconds.")
     Long messageInterval = 1000L;
     @YamlComment("Max words equal to the last message. Greater or equal to this value will be considered spam.")
@@ -74,11 +86,29 @@ public class Settings {
     @Override
     public String toString() {
         return "Settings{" +
-                "redisUri='" + redisUri + '\'' +
+                "proxy=" + proxy +
+                ", ignoreServers=[" + String.join(", ", ignoreServers) +
+                "], redisUri='" + redisUri + '\'' +
+                ", requiresMultiInstance=" + requiresMultiInstance +
                 ", perspectiveApiKey='" + perspectiveApiKey + '\'' +
                 ", threshold=" + threshold +
                 ", muteTime=" + muteTime +
                 ", warnExpireTime=" + warnExpireTime +
+                ", moderationType=" + moderationType +
+                ", blockedWords=[" + String.join(", ", blockedWords) +
+                "], signModeration=" + signModeration +
+                ", antiSpam=" + antiSpam +
+                ", messageInterval=" + messageInterval +
+                ", maxWords=" + maxWords +
+                ", commandInterval=" + commandInterval +
+                ", cacheExpireDays=" + cacheExpireDays +
+                ", liteBanSupport=" + liteBanSupport +
+                ", muteCommand='" + muteCommand + '\'' +
+                ", unmuteCommand='" + unmuteCommand + '\'' +
+                ", warnCommand='" + warnCommand + '\'' +
+                ", unwarnCommand='" + unwarnCommand + '\'' +
+                ", debug=" + debug +
+                ", verbose=" + verbose +
                 '}';
     }
 }

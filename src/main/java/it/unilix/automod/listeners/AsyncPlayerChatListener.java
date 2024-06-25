@@ -80,7 +80,7 @@ public class AsyncPlayerChatListener implements Listener {
         processMessageAsync(event, player);
     }
 
-    private boolean isSpamming(Player player, String message) {
+    public boolean isSpamming(Player player, String message) {
         if(player.hasPermission("automod.staff")) return false;
 
         if(!lastMessage.containsKey(player.getUniqueId())) {
@@ -137,7 +137,7 @@ public class AsyncPlayerChatListener implements Listener {
         return false;
     }
 
-    private boolean handleMute(Player player) {
+    public boolean handleMute(Player player) {
         if (MuteManager.isMuted(player.getUniqueId())) {
             msg(player, plugin.getMessages().getMuted());
             return true;
@@ -145,24 +145,33 @@ public class AsyncPlayerChatListener implements Listener {
         return false;
     }
 
-    private boolean handleLinkDetection(AsyncPlayerChatEvent event, Player player) {
+    public boolean handleLinkDetection(AsyncPlayerChatEvent event, Player player) {
         if (!LinkDetector.detect(event.getMessage()).isEmpty()) {
-            MuteManager.warnPlayer(player.getUniqueId());
-            int warnings = MuteManager.getWarnings(player.getUniqueId());
+            switch (plugin.getSettings().getModerationType()) {
+                case CENSOR:
+                    broadcastMessage(event, player, event.getMessage(), LinkDetector.censor(event.getMessage()));
+                    break;
+                case TRIWM:
+                    MuteManager.warnPlayer(player.getUniqueId());
+                    int warnings = MuteManager.getWarnings(player.getUniqueId());
 
-            if (warnings >= 2) {
-                MuteManager.mutePlayer(player.getUniqueId());
-                MuteManager.clearWarnings(player.getUniqueId());
-                msg(player, plugin.getMessages().getMuted());
-            } else {
-                msg(player, plugin.getMessages().getWarned());
+                    if (warnings >= 2) {
+                        MuteManager.mutePlayer(player.getUniqueId());
+                        MuteManager.clearWarnings(player.getUniqueId());
+                        msg(player, plugin.getMessages().getMuted());
+                    } else {
+                        msg(player, plugin.getMessages().getWarned());
+                    }
+                    break;
+                default:
+                    break;
             }
             return true;
         }
         return false;
     }
 
-    private void processMessageAsync(AsyncPlayerChatEvent event, Player player) {
+    public void processMessageAsync(AsyncPlayerChatEvent event, Player player) {
         new BukkitRunnable() {
             final String message = event.getMessage();
             final String format = String.format(event.getFormat(), player.getDisplayName(), message);
@@ -178,7 +187,7 @@ public class AsyncPlayerChatListener implements Listener {
         }.runTaskAsynchronously(plugin);
     }
 
-    private void handleMessage(AsyncPlayerChatEvent event, Player player, String message, String format)
+    public void handleMessage(AsyncPlayerChatEvent event, Player player, String message, String format)
             throws InterruptedException, ExecutionException, URISyntaxException {
         boolean isToxic;
         String censoredMessage;
@@ -200,7 +209,7 @@ public class AsyncPlayerChatListener implements Listener {
         }
     }
 
-    private void handleToxicMessage(AsyncPlayerChatEvent event, Player player, String message, String censoredMessage, String format) {
+    public void handleToxicMessage(AsyncPlayerChatEvent event, Player player, String message, String censoredMessage, String format) {
         MuteManager.warnPlayer(player.getUniqueId());
         int warnings = MuteManager.getWarnings(player.getUniqueId());
 
@@ -228,7 +237,7 @@ public class AsyncPlayerChatListener implements Listener {
         plugin.getCacheManager().addCache(new Cache(message, censoredMessage, true));
     }
 
-    private void broadcastMessage(
+    public void broadcastMessage(
             AsyncPlayerChatEvent event, Player player, String message, String censoredMessage
     ) {
         String format = String.format(event.getFormat(), player.getDisplayName(), message);
@@ -246,7 +255,7 @@ public class AsyncPlayerChatListener implements Listener {
         }
     }
 
-    private void msg(Player player, String message) {
+    public void msg(Player player, String message) {
         player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }
 }

@@ -1,22 +1,28 @@
 package it.unilix.automod.listeners;
 
 import it.unilix.automod.configs.Messages;
+import it.unilix.automod.configs.Settings;
 import it.unilix.automod.utils.ChatUtils;
+import it.unilix.automod.utils.Pair;
+import it.unilix.automod.utils.StringUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
 public class PlayerCommandPreprocessListener implements Listener {
-    private final HashMap<UUID, String> lastCommand = new HashMap<>();
+    private final HashMap<UUID, Pair<String, Long>> lastCommand = new HashMap<>();
     private final Messages messages;
+    private final Settings settings;
 
-    public PlayerCommandPreprocessListener(Messages messages) {
+    public PlayerCommandPreprocessListener(Messages messages, Settings settings) {
         this.messages = messages;
+        this.settings = settings;
     }
 
     @EventHandler
@@ -27,18 +33,26 @@ public class PlayerCommandPreprocessListener implements Listener {
             return;
         }
 
+        if(Arrays.stream(settings.getBlacklistedCommands()).anyMatch(message::startsWith)) {
+            event.setCancelled(true);
+            ChatUtils.msg(player, messages.getBlackListedCommand());
+            return;
+        }
+
         if (isSpamming(player, message)) {
             event.setCancelled(true);
             ChatUtils.msg(player, messages.getSpammingCommand());
             return;
         }
 
-        lastCommand.put(player.getUniqueId(), message);
+        lastCommand.put(player.getUniqueId(), new Pair<>(message, System.currentTimeMillis()));
     }
 
     private boolean isSpamming(Player player, String message) {
-        String command = message.split(" ")[0];
-        String last = lastCommand.get(player.getUniqueId()).split(" ")[0];
-        return command.equalsIgnoreCase(last);
+        String command = StringUtils.splitOrEmpty(message, " ")[0];
+        Pair<String, Long> last = lastCommand.getOrDefault(player.getUniqueId(), new Pair<>("", System.currentTimeMillis()));
+        String lastCommand = StringUtils.splitOrEmpty(last.getFirst(), " ")[0];
+        Long lastTime = last.getSecond();
+        return lastCommand.equalsIgnoreCase(command) && System.currentTimeMillis() - lastTime < settings.getCommandInterval();
     }
 }

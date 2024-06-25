@@ -13,4 +13,8 @@ public class StringUtils {
         }
         return chunks;
     }
+
+    public static String[] splitOrEmpty(String str, String regex) {
+        return str.isEmpty() ? new String[0] : str.split(regex);
+    }
 }

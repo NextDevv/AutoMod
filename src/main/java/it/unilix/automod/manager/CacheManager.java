@@ -8,15 +8,19 @@ import lombok.Getter;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.nio.file.Files.*;
 
 public class CacheManager {
     @Getter
     private final List<Cache> cacheList = new ArrayList<>();
     private @Nullable File folder = null;
-    private final AutoMod plugin;
     private long lastDataSave = 0;
+    private final AutoMod plugin;
 
     public boolean folderInitialized() {
         return folder != null && folder.exists();
@@ -41,7 +45,7 @@ public class CacheManager {
     }
 
     public void load() {
-        folder = new File(plugin.getDataFolder().getAbsolutePath(), "cache");
+        folder = new File(plugin.getDataFolder(), "cache");
         if (!folder.exists()) {
             boolean successful = folder.mkdirs();
             if (!successful) {
@@ -73,8 +77,19 @@ public class CacheManager {
         }
 
         File lastSave = new File(folder, "lastSave");
-        if(lastSave.exists()) {
-            lastDataSave = lastSave.lastModified();
+        if(!lastSave.exists()) {
+            try {
+                lastSave.createNewFile();
+            } catch (Exception e) {
+                plugin.getLogger().severe("Failed to create lastSave file.");
+            }
+        }
+
+        try {
+            lastDataSave = Long.parseLong(new String(readAllBytes(lastSave.toPath())));
+        } catch (Exception e) {
+            plugin.getLogger().severe("Failed to read lastSave file.");
+            lastDataSave = System.currentTimeMillis();
         }
 
         if(System.currentTimeMillis() - lastDataSave > (long) plugin.getSettings().getCacheExpireDays() * 24 * 60 * 60 * 1000) {
@@ -97,7 +112,20 @@ public class CacheManager {
         file.save();
 
         lastDataSave = System.currentTimeMillis();
-        new File(folder, "lastSave").setLastModified(lastDataSave);
+        File lastSave = new File(folder, "lastSave");
+        if(!lastSave.exists()) {
+            try {
+                lastSave.createNewFile();
+            } catch (Exception e) {
+                plugin.getLogger().severe("Failed to create lastSave file.");
+            }
+        }
+
+        try (FileWriter writer = new FileWriter(lastSave)) {
+            writer.write(String.valueOf(lastDataSave));
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to write lastSave file.");
+        }
     }
 
     public boolean isCached(String message) {

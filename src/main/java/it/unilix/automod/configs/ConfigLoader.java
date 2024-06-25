@@ -14,7 +14,11 @@ public class ConfigLoader {
         this.folder = plugin.getDataFolder();
     }
 
-    public Settings loadSettings() {
+    public ConfigLoader(@NotNull File folder) {
+        this.folder = folder;
+    }
+
+    public @NotNull Settings loadSettings() {
         if(!folder.exists()) {
             boolean successful = folder.mkdirs();
             if(!successful) {
@@ -36,7 +40,7 @@ public class ConfigLoader {
         return settings;
     }
 
-    public Messages loadMessages() {
+    public @NotNull Messages loadMessages() {
         if(!folder.exists()) {
             boolean successful = folder.mkdirs();
             if(!successful) {

@@ -15,6 +15,7 @@ import it.unilix.automod.listeners.AsyncPlayerChatListener;
 import it.unilix.automod.listeners.PlayerCommandPreprocessListener;
 import it.unilix.automod.listeners.SignChangeListener;
 import it.unilix.automod.manager.CacheManager;
+import it.unilix.automod.metrics.Metrics;
 import it.unilix.automod.redis.RedisManager;
 import it.unilix.automod.utils.ApiKeyValidator;
 import it.unilix.automod.utils.MuteManager;
@@ -36,6 +37,11 @@ public final class AutoMod extends JavaPlugin {
     private RedisManager redisManager;
     private PerspectiveAPI perspectiveAPI;
     private LiteBans liteBans;
+
+    public static AutoMod instance;
+    public AutoMod() {
+        instance = this;
+    }
 
     private final CacheManager cacheManager = new CacheManager(this);
     private final CommandManager commandManager = new CommandManager(this);
@@ -94,8 +100,20 @@ public final class AutoMod extends JavaPlugin {
     private void loadConfigurations() {
         getLogger().info("Loading settings & messages...");
         ConfigLoader configLoader = new ConfigLoader(this);
+
         settings = configLoader.loadSettings();
         messages = configLoader.loadMessages();
+
+        if(settings.isDebug()) {
+            getLogger().info("Loaded settings: " + settings);
+            getLogger().info("Loaded messages: " + messages);
+        }
+    }
+
+    private void enableMetrics() {
+        getLogger().info("Enabling basic metrics information...");
+        Metrics metrics = new Metrics(this, 22399);
+        metrics.addCustomChart(new Metrics.SimplePie("block_message", () -> getCacheManager().getCacheList().size() + " blocked messages"));
     }
 
     private boolean validateApiKey() {
@@ -125,7 +143,7 @@ public final class AutoMod extends JavaPlugin {
     private void registerListeners() {
         getLogger().info("Registering listeners...");
         getServer().getPluginManager().registerEvents(new AsyncPlayerChatListener(this), this);
-        getServer().getPluginManager().registerEvents(new PlayerCommandPreprocessListener(getMessages()), this);
+        getServer().getPluginManager().registerEvents(new PlayerCommandPreprocessListener(getMessages(), getSettings()), this);
         // TODO: Fix this
         // getServer().getPluginManager().registerEvents(new SignChangeListener(this), this);
     }

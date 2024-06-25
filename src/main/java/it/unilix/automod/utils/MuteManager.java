@@ -73,16 +73,19 @@ public class MuteManager {
     }
 
     public static void checkPlayer(Player player) {
-        UUID uuid = player.getUniqueId();
+        checkPlayer(player.getUniqueId());
+    }
+
+    public static void checkPlayer(UUID player) {
         long currentTime = System.currentTimeMillis();
 
-        if (currentTime - getMuteTime(uuid) >= plugin.getSettings().getMuteTime()) {
-            unmutePlayer(uuid);
-            clearWarnings(uuid);
+        if (currentTime - getMuteTime(player) >= plugin.getSettings().getMuteTime()) {
+            unmutePlayer(player);
+            clearWarnings(player);
         }
 
-        if (currentTime - getWarnTime(uuid) >= plugin.getSettings().getWarnExpireTime()) {
-            clearWarnings(uuid);
+        if (currentTime - getWarnTime(player) >= plugin.getSettings().getWarnExpireTime()) {
+            clearWarnings(player);
         }
     }
 
