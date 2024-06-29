@@ -11,4 +11,8 @@ public class ListUtils {
         }
         return builder.toString();
     }
+
+    public static String random(String[] list) {
+        return list[(int) (Math.random() * list.length)];
+    }
 }

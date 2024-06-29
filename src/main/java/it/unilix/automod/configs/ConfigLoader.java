@@ -14,10 +14,6 @@ public class ConfigLoader {
         this.folder = plugin.getDataFolder();
     }
 
-    public ConfigLoader(@NotNull File folder) {
-        this.folder = folder;
-    }
-
     public @NotNull Settings loadSettings() {
         if(!folder.exists()) {
             boolean successful = folder.mkdirs();

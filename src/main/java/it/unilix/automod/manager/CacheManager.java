@@ -40,10 +40,6 @@ public class CacheManager {
         cacheList.clear();
     }
 
-    public void removeCache(String message) {
-        cacheList.removeIf(cache -> cache.message().equals(message));
-    }
-
     public void load() {
         folder = new File(plugin.getDataFolder(), "cache");
         if (!folder.exists()) {
@@ -65,7 +61,8 @@ public class CacheManager {
             ArrayList<Cache> caches = new ArrayList<>();
 
             for (Object obj : cachesObj) {
-                LinkedTreeMap<String, Object> cacheMap = (LinkedTreeMap<String, Object>) obj;
+                @SuppressWarnings("unchecked") LinkedTreeMap<String, Object> cacheMap
+                        = (LinkedTreeMap<String, Object>) obj;
                 caches.add(new Cache(cacheMap));
             }
 
@@ -76,15 +73,8 @@ public class CacheManager {
             plugin.getLogger().severe("Failed to load cache file.");
         }
 
-        File lastSave = new File(folder, "lastSave");
-        if(!lastSave.exists()) {
-            try {
-                lastSave.createNewFile();
-            } catch (Exception e) {
-                plugin.getLogger().severe("Failed to create lastSave file.");
-            }
-        }
 
+        File lastSave = getSaveFile();
         try {
             lastDataSave = Long.parseLong(new String(readAllBytes(lastSave.toPath())));
         } catch (Exception e) {
@@ -95,10 +85,29 @@ public class CacheManager {
         if(System.currentTimeMillis() - lastDataSave > (long) plugin.getSettings().getCacheExpireDays() * 24 * 60 * 60 * 1000) {
             clearCache();
             save();
-            lastSave.delete();
+            boolean success = lastSave.delete();
+            if (!success) {
+                throw new RuntimeException("Failed to delete lastSave file.");
+            }
 
             plugin.getLogger().warning("Cache expired. Cleared all caches.");
         }
+    }
+
+    private File getSaveFile() {
+        File lastSave = new File(folder, "lastSave");
+        if(!lastSave.exists()) {
+            try {
+                boolean success = lastSave.createNewFile();
+                if (!success) {
+                    throw new RuntimeException("Failed to create lastSave file.");
+                }
+            } catch (Exception e) {
+                plugin.getLogger().severe("Failed to create lastSave file.");
+            }
+        }
+
+        return lastSave;
     }
 
     public void save() {
@@ -112,15 +121,7 @@ public class CacheManager {
         file.save();
 
         lastDataSave = System.currentTimeMillis();
-        File lastSave = new File(folder, "lastSave");
-        if(!lastSave.exists()) {
-            try {
-                lastSave.createNewFile();
-            } catch (Exception e) {
-                plugin.getLogger().severe("Failed to create lastSave file.");
-            }
-        }
-
+        File lastSave = getSaveFile();
         try (FileWriter writer = new FileWriter(lastSave)) {
             writer.write(String.valueOf(lastDataSave));
         } catch (IOException e) {

@@ -100,15 +100,11 @@ public class CommandManager implements CommandExecutor, TabExecutor {
             arguments.forEach((index, arg) -> {
                 if(args.length - 1 < index) {
                     String add = arg;
-                    switch (add) {
-                        case "<player>":
-                            add = ListUtils.toString(Bukkit.getOnlinePlayers().stream().map(Player::getName).toArray(String[]::new), ", ");
-                            break;
+                    if (add.equals("<player>")) {
+                        add = ListUtils.toString(Bukkit.getOnlinePlayers().stream().map(Player::getName).toArray(String[]::new), ", ");
 
                         /* More Completions */
                         /* . . . */
-                        default:
-                            break;
                     }
 
                     completions.addAll(Arrays.stream((add.split(", "))).toList());

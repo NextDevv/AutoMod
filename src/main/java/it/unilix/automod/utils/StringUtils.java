@@ -1,10 +1,6 @@
 package it.unilix.automod.utils;
 
 public class StringUtils {
-    public static String repeat(String str, int times) {
-        return new String(new char[times]).replace("\0", str);
-    }
-
     public static String[] chunked(String str, int size) {
         int numChunks = (int) Math.ceil((double) str.length() / size);
         String[] chunks = new String[numChunks];

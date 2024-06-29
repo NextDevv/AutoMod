@@ -12,7 +12,6 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.UUID;
 
 public class PlayerCommandPreprocessListener implements Listener {

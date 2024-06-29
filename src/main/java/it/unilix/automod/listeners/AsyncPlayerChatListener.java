@@ -12,7 +12,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.net.URISyntaxException;
@@ -20,7 +19,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class AsyncPlayerChatListener implements Listener {
 
@@ -69,7 +67,7 @@ public class AsyncPlayerChatListener implements Listener {
                 plugin.getLogger().warning("[DEBUG] Censored message: " + censoredMessage);
             }
 
-            handleToxicMessage(event, player, event.getMessage(), censoredMessage, event.getFormat());
+            handleToxicMessage(event, player, event.getMessage(), censoredMessage);
 
             lastMessage.put(player.getUniqueId(), event.getMessage());
             return;
@@ -149,7 +147,9 @@ public class AsyncPlayerChatListener implements Listener {
         if (!LinkDetector.detect(event.getMessage()).isEmpty()) {
             switch (plugin.getSettings().getModerationType()) {
                 case CENSOR:
-                    broadcastMessage(event, player, event.getMessage(), LinkDetector.censor(event.getMessage()));
+                    // broadcastMessage(event, player, event.getMessage(), LinkDetector.censor(event.getMessage()));
+                    event.setMessage(LinkDetector.censor(event.getMessage()));
+                    processMessageAsync(event, player);
                     break;
                 case TRIWM:
                     MuteManager.warnPlayer(player.getUniqueId());
@@ -174,20 +174,20 @@ public class AsyncPlayerChatListener implements Listener {
     public void processMessageAsync(AsyncPlayerChatEvent event, Player player) {
         new BukkitRunnable() {
             final String message = event.getMessage();
-            final String format = String.format(event.getFormat(), player.getDisplayName(), message);
 
             @Override
             public void run() {
                 try {
-                    handleMessage(event, player, message, format);
+                    handleMessage(event, player, message);
                 } catch (InterruptedException | ExecutionException | URISyntaxException e) {
-                    e.printStackTrace();
+                    Throwable throwable = e.fillInStackTrace();
+                    plugin.getLogger().severe("Failed to handle message: " + throwable.getMessage());
                 }
             }
         }.runTaskAsynchronously(plugin);
     }
 
-    public void handleMessage(AsyncPlayerChatEvent event, Player player, String message, String format)
+    public void handleMessage(AsyncPlayerChatEvent event, Player player, String message)
             throws InterruptedException, ExecutionException, URISyntaxException {
         boolean isToxic;
         String censoredMessage;
@@ -203,13 +203,15 @@ public class AsyncPlayerChatListener implements Listener {
         }
 
         if (isToxic) {
-            handleToxicMessage(event, player, message, censoredMessage, format);
+            handleToxicMessage(event, player, message, censoredMessage);
         } else {
             broadcastMessage(event, player, message, censoredMessage);
         }
+
+        plugin.getCacheManager().addCache(new Cache(message, censoredMessage, isToxic));
     }
 
-    public void handleToxicMessage(AsyncPlayerChatEvent event, Player player, String message, String censoredMessage, String format) {
+    public void handleToxicMessage(AsyncPlayerChatEvent event, Player player, String message, String censoredMessage) {
         MuteManager.warnPlayer(player.getUniqueId());
         int warnings = MuteManager.getWarnings(player.getUniqueId());
 
@@ -234,7 +236,6 @@ public class AsyncPlayerChatListener implements Listener {
                 break;
         }
 
-        plugin.getCacheManager().addCache(new Cache(message, censoredMessage, true));
     }
 
     public void broadcastMessage(

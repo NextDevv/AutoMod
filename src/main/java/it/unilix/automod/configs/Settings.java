@@ -4,8 +4,6 @@ import it.unilix.automod.enums.ModerationType;
 import it.unilix.yaml.YamlComment;
 import lombok.Getter;
 
-import java.util.Map;
-
 @Getter
 public class Settings {
     // PROXY SECTION
@@ -48,8 +46,11 @@ public class Settings {
     boolean signModeration = true;
     @YamlComment("Blacklisted commands. If a player tries to execute one of these commands, it will be blocked.")
     String[] blacklistedCommands = {"/op", "/deop"};
+    @YamlComment("Censor characters. If a message is censored, these characters will be used.")
+    String censorCharacters = "*";
 
     // ANTI-SPAM SECTION
+    @YamlComment("Enable anti-spam.")
     boolean antiSpam = true;
     @YamlComment("Message interval in milliseconds.")
     Long messageInterval = 1000L;

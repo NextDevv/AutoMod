@@ -1,5 +1,8 @@
 package it.unilix.automod.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum ModEvent {
     CHAT("chat"),
     WARN("warn"),
@@ -13,16 +16,4 @@ public enum ModEvent {
         this.name = name;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public static ModEvent fromString(String name) {
-        for (ModEvent event : ModEvent.values()) {
-            if (event.getName().equalsIgnoreCase(name)) {
-                return event;
-            }
-        }
-        return null;
-    }
 }

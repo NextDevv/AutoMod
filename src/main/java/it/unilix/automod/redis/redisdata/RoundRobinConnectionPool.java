@@ -2,13 +2,13 @@ package it.unilix.automod.redis.redisdata;
 
 import io.lettuce.core.api.StatefulRedisConnection;
 
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class RoundRobinConnectionPool<K,V> {
     private final AtomicInteger next = new AtomicInteger(0);
-    private StatefulRedisConnection[] elements;
+    private final StatefulRedisConnection[] elements;
     private final Supplier<StatefulRedisConnection<K,V>> statefulRedisConnectionSupplier;
 
     public RoundRobinConnectionPool(Supplier<StatefulRedisConnection<K,V>> statefulRedisConnectionSupplier, int poolSize) {
@@ -17,11 +17,6 @@ public class RoundRobinConnectionPool<K,V> {
         for(int i = 0; i < poolSize; i++) {
             elements[i] = statefulRedisConnectionSupplier.get();
         }
-    }
-    public void expandPool(int expandBy) {
-        if(expandBy <= 0)
-            throw new IllegalArgumentException("expandBy must be greater than 0");
-        this.elements = Arrays.copyOf(elements, elements.length + expandBy);
     }
 
     public StatefulRedisConnection<K, V> get() {

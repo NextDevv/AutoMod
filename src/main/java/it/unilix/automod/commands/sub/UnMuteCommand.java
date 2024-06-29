@@ -8,9 +8,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
-import java.util.Map;
-
-import static javax.swing.UIManager.put;
 
 public class UnMuteCommand implements ICommand {
     @Override

@@ -33,7 +33,7 @@ public class RedisManager extends RedisAbstract {
 
     public void subscribe() {
         getPubSubConnection(c -> {
-            c.addListener(new RedisPubSub<String, String>() {
+            c.addListener(new RedisPubSub<>() {
                 @Override
                 public void message(String channel, String message) {
                     JsonObject jsonObject = new Gson().fromJson(message, JsonObject.class);
@@ -73,11 +73,6 @@ public class RedisManager extends RedisAbstract {
             });
             c.async().subscribe("auto-mod");
         });
-    }
-
-    public boolean connected() {
-        if(lettuceRedisClient == null) return false;
-        return lettuceRedisClient.connect().isOpen();
     }
 
 	public String getServerName() {

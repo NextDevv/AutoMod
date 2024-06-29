@@ -6,9 +6,6 @@ import it.unilix.automod.utils.ChatUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpRequest;
 import java.util.HashMap;
 
 public class StatusCommand implements ICommand {

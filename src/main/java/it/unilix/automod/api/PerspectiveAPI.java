@@ -1,6 +1,7 @@
 package it.unilix.automod.api;
 
 import it.unilix.automod.configs.Settings;
+import it.unilix.automod.utils.ListUtils;
 import it.unilix.automod.utils.Pair;
 import it.unilix.json.JsonObject;
 import it.unilix.json.JsonString;
@@ -25,10 +26,12 @@ public class PerspectiveAPI {
             .connectTimeout(ofSeconds(5))
             .build();
     private final Settings settings;
+    private final String[] censorChars;
 
     public PerspectiveAPI(@NotNull String apiKey, @NotNull Settings settings) {
         this.apiKey = apiKey;
         this.settings = settings;
+        censorChars = this.settings.getCensorCharacters().split("");
     }
 
     public CompletableFuture<Pair<String, Boolean>> censorAsync(String text) throws URISyntaxException {
@@ -76,8 +79,9 @@ public class PerspectiveAPI {
                             int begin = (int) Double.parseDouble(String.valueOf(Objects.requireNonNull(spanScore.get("begin").get())));
                             int end = (int) Double.parseDouble(String.valueOf(Objects.requireNonNull(spanScore.get("end").get())));
                             IntStream.range(begin, end).forEach(j -> {
+                                String randomChar = ListUtils.random(censorChars);
                                 if(chars.get(j) != ' ' && chars.get(j) != '\n' && chars.get(j) != '\t' && chars.get(j) != '\r')
-                                    chars.set(j, '*');
+                                    chars.set(j, randomChar.charAt(0));
                             });
                             if(settings.isDebug()) {
                                 System.out.println("[DEBUG] Toxic span: " + text.substring(begin, end));

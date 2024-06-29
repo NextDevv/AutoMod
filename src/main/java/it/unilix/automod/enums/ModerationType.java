@@ -14,13 +14,4 @@ public enum ModerationType {
     ModerationType(String type) {
         this.moderationType = type;
     }
-
-    public static ModerationType fromString(String type) {
-        for (ModerationType moderationType : ModerationType.values()) {
-            if (moderationType.getModerationType().equalsIgnoreCase(type)) {
-                return moderationType;
-            }
-        }
-        return null;
-    }
 }

@@ -13,20 +13,13 @@ import it.unilix.automod.configs.Messages;
 import it.unilix.automod.configs.Settings;
 import it.unilix.automod.listeners.AsyncPlayerChatListener;
 import it.unilix.automod.listeners.PlayerCommandPreprocessListener;
-import it.unilix.automod.listeners.SignChangeListener;
 import it.unilix.automod.manager.CacheManager;
 import it.unilix.automod.metrics.Metrics;
 import it.unilix.automod.redis.RedisManager;
 import it.unilix.automod.utils.ApiKeyValidator;
-import it.unilix.automod.utils.MuteManager;
-import it.unilix.json.JsonExclude;
-import it.unilix.yaml.YamlExclude;
-import litebans.api.Database;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Objects;
 
@@ -67,6 +60,7 @@ public final class AutoMod extends JavaPlugin {
         loadCaches();
         setupCommands();
         hookIntoLiteBans();
+        enableMetrics();
 
         getLogger().info("AutoMod has been enabled.");
         getLogger().info("=== AutoMod ===");
