@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'it.unilix'
-version = '0.3.5-release'
+version = '0.3.6-release'
 
 repositories {
     mavenCentral()
