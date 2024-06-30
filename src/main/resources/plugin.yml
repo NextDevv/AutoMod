@@ -1,6 +1,6 @@
 name: AutoMod
 version: '${version}'
-main: it.unilix.automod.AutoMod
+main: com.nextdevv.automod.AutoMod
 api-version: '1.17'
 load: POSTWORLD
 libraries:
