@@ -12,6 +12,9 @@ AutoMod is a Minecraft Spigot plugin designed to enhance in-game chat moderation
 - **Link and IP Blocking:** Blocks links, domains, IPv4, and IPv6 addresses to prevent spam and malicious content.
 - **Multi-Instance Support:** Utilizes Redis to communicate between multiple server instances for synchronized moderation.
 - **Configurable Caching:** Implements caches to improve performance with customizable expiration settings.
+- **Smart Anti-Spam Detection:** Employs algorithms to identify and mitigate spam behavior intelligently.
+- **Anti-Command Spam:** Limits the frequency of command usage to prevent abuse and maintain server stability.
+- **LiteBans Supported:** Integrates with LiteBans to enhance moderation capabilities with advanced ban management features.
 
 ## Installation
 
