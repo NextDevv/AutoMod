@@ -61,6 +61,8 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 For support, please open an issue on the [GitHub repository](https://github.com/nextdevv/automod/issues) or contact us via email at support@unilix.it.
 
+Or even join the discord server https://discord.gg/hpkF73sGzw
+
 ---
 
 Thank you for using AutoMod! We hope it helps keep your Minecraft server chat safe and enjoyable for everyone.
