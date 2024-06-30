@@ -59,6 +59,18 @@ public class Settings {
     @YamlComment("Command interval in milliseconds.")
     Long commandInterval = 3000L;
 
+    // PRIVATE MESSAGING
+    @YamlComment("Enable private messaging. (e.g. /msg, /r)")
+    boolean privateMessaging = true;
+    @YamlComment("Should AutoMod moderate private messages.")
+    boolean moderatePrivateMessages = true;
+    @YamlComment("Should links, IPs, and domains be filtered based on the moderationType in private messages.")
+    boolean filterLinksInPrivateMessages = true;
+    @YamlComment("Can muted players send private messages.")
+    boolean mutedCanSendPrivateMessages = false;
+    @YamlComment("Private messages format")
+    String privateMessagesFormat = "&7[&6{sender} &7 -> &6{receiver}&7] {message}";
+
     // CACHE SECTION
     @YamlComment("Cache expire time in days.")
     int cacheExpireDays = 7;

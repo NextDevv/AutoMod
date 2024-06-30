@@ -13,4 +13,7 @@ public class Messages {
     String spamming = "&cYou are spamming!";
     String spammingCommand = "&cYou are sending commands too fast.";
     String blackListedCommand = "&cYou are not allowed to use this command.";
+    String privateMessageUsage = "&cUsage: /msg <player> <message>";
+    String cannotMessageSelf = "&cYou cannot message yourself!";
+    String playerNotOnline = "&cPlayer is not online!";
 }

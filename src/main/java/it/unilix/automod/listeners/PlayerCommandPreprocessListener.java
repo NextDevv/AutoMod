@@ -48,9 +48,9 @@ public class PlayerCommandPreprocessListener implements Listener {
     }
 
     private boolean isSpamming(Player player, String message) {
-        String command = StringUtils.splitOrEmpty(message, " ")[0];
+        String command = StringUtils.getSplitOrEmpty(message, " ", 0);
         Pair<String, Long> last = lastCommand.getOrDefault(player.getUniqueId(), new Pair<>("", System.currentTimeMillis()));
-        String lastCommand = StringUtils.splitOrEmpty(last.getFirst(), " ")[0];
+        String lastCommand = StringUtils.getSplitOrEmpty(last.getFirst(), " ", 0);
         Long lastTime = last.getSecond();
         return lastCommand.equalsIgnoreCase(command) && System.currentTimeMillis() - lastTime < settings.getCommandInterval();
     }

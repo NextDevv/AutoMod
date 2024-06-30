@@ -8,7 +8,8 @@ public enum ModEvent {
     WARN("warn"),
     MUTE("mute"),
     UNMUTE("unmute"),
-    CLEAR_WARNINGS("clear_warnings");
+    CLEAR_WARNINGS("clear_warnings"),
+    MSG("msg");
 
     private final String name;
 
