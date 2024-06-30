@@ -30,6 +30,8 @@ After the initial run, a configuration file will be generated in the `plugins/Au
 ## Commands
 
 - `/automod reload` - Reloads the plugin configuration.
+- `/automod status` - Checks the status of all services.
+- `/automod unmute <player>` - Unmutes a player.
 
 ## Permissions
 
