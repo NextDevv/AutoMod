@@ -10,6 +10,7 @@ libraries:
 
 softdepend:
   - LiteBans
+
 commands:
   automod:
     description: 'AutoMod command'
@@ -18,24 +19,6 @@ commands:
     aliases:
     - am
     - autom
-  automodmsg:
-    description: 'AutoMod message command'
-    usage: '/automodmsg <message>'
-    permission: 'automod.command'
-    aliases:
-    - ammsg
-    - automsg
-    - msg
-  automodresponse:
-    description: 'AutoMod response command'
-    usage: '/automodresponse <response>'
-    permission: 'automod.command'
-    aliases:
-    - amresponse
-    - autoresponse
-    - response
-    - r
-
 
 permissions:
   automod.command:

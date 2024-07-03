@@ -208,6 +208,7 @@ public class AsyncPlayerChatListener implements Listener {
             broadcastMessage(event, player, message, censoredMessage);
         }
 
+        plugin.getLogger().info(player.getName() + ": " + message);
         plugin.getCacheManager().addCache(new Cache(message, censoredMessage, isToxic));
     }
 

@@ -6,16 +6,6 @@ import lombok.Getter;
 
 @Getter
 public class Settings {
-    // PROXY SECTION
-    @YamlComment({
-            "Activate proxy mode.",
-            "If you are running this plugin on a BungeeCord server, set this to true.",
-            "Some features will be disabled if this is set to true."
-    })
-    boolean proxy = false;
-    @YamlComment("Ignored servers. If the player is on one of these servers, the plugin will not moderate the chat.")
-    String[] ignoreServers = {"lobby_1", "lobby_2", "vanilla"};
-
     // REDIS SECTION
     @YamlComment("Redis URI. If you are running multiple instances of this plugin, set this to the same URI.")
     String redisUri = "redis://localhost";
@@ -59,18 +49,6 @@ public class Settings {
     @YamlComment("Command interval in milliseconds.")
     Long commandInterval = 3000L;
 
-    // PRIVATE MESSAGING
-    @YamlComment("Enable private messaging. (e.g. /msg, /r)")
-    boolean privateMessaging = true;
-    @YamlComment("Should AutoMod moderate private messages.")
-    boolean moderatePrivateMessages = true;
-    @YamlComment("Should links, IPs, and domains be filtered based on the moderationType in private messages.")
-    boolean filterLinksInPrivateMessages = true;
-    @YamlComment("Can muted players send private messages.")
-    boolean mutedCanSendPrivateMessages = false;
-    @YamlComment("Private messages format")
-    String privateMessagesFormat = "&7[&6{sender} &7 -> &6{receiver}&7] {message}";
-
     // CACHE SECTION
     @YamlComment("Cache expire time in days.")
     int cacheExpireDays = 7;
@@ -99,9 +77,7 @@ public class Settings {
     @Override
     public String toString() {
         return "Settings{" +
-                "proxy=" + proxy +
-                ", ignoreServers=[" + String.join(", ", ignoreServers) +
-                "], redisUri='" + redisUri + '\'' +
+                "redisUri='" + redisUri + '\'' +
                 ", requiresMultiInstance=" + requiresMultiInstance +
                 ", perspectiveApiKey='" + perspectiveApiKey + '\'' +
                 ", threshold=" + threshold +
