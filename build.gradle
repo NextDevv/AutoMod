@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.nextdevv'
-version = '0.3.7-alpha3'
+version = '0.3.8-release'
 
 repositories {
     mavenCentral()
