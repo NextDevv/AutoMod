@@ -32,8 +32,6 @@ public class Settings {
     ModerationType moderationType = ModerationType.TRIWM;
     @YamlComment("Blocked words. If a message contains any of these words, it will be filtered.")
     String[] blockedWords = {"badword1", "badword2"};
-    @YamlComment("Enables the moderation on signs too.")
-    boolean signModeration = true;
     @YamlComment("Blacklisted commands. If a player tries to execute one of these commands, it will be blocked.")
     String[] blacklistedCommands = {"/op", "/deop"};
     @YamlComment("Censor characters. If a message is censored, these characters will be used.")
@@ -85,8 +83,7 @@ public class Settings {
                 ", warnExpireTime=" + warnExpireTime +
                 ", moderationType=" + moderationType +
                 ", blockedWords=[" + String.join(", ", blockedWords) +
-                "], signModeration=" + signModeration +
-                ", antiSpam=" + antiSpam +
+                "], antiSpam=" + antiSpam +
                 ", messageInterval=" + messageInterval +
                 ", maxWords=" + maxWords +
                 ", commandInterval=" + commandInterval +
