@@ -7,17 +7,15 @@ import com.nextdevv.automod.models.ChatEvent;
 import com.nextdevv.automod.utils.LinkDetector;
 import com.nextdevv.automod.utils.MuteManager;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
+import org.bukkit.event.*;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 public class AsyncPlayerChatListener implements Listener {
@@ -25,9 +23,16 @@ public class AsyncPlayerChatListener implements Listener {
     private static final int MAX_WARNINGS = 3;
     private final AutoMod plugin;
     private final HashMap<UUID, String> lastMessage = new HashMap<>();
+    private final List<RegisteredListener> handlers = new ArrayList<>();
 
     public AsyncPlayerChatListener(AutoMod plugin) {
         this.plugin = plugin;
+        Arrays.stream(AsyncPlayerChatEvent.getHandlerList().getRegisteredListeners()).forEach(handler -> {
+            if(Arrays.asList(plugin.getSettings().getChatHandlers()).contains(handler.getPlugin().getName())) {
+                AsyncPlayerChatEvent.getHandlerList().unregister(handler);
+                handlers.add(handler);
+            }
+        });
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -242,6 +247,24 @@ public class AsyncPlayerChatListener implements Listener {
     public void broadcastMessage(
             AsyncPlayerChatEvent event, Player player, String message, String censoredMessage
     ) {
+        if(!Arrays.stream(plugin.getSettings().getChatHandlers()).toList().isEmpty()) {
+            AsyncPlayerChatEvent newEvent = new AsyncPlayerChatEvent(
+                    event.isAsynchronous(),
+                    player,
+                    censoredMessage,
+                    event.getRecipients()
+            );
+
+            handlers.forEach(handler -> {
+                try {
+                    handler.callEvent(newEvent);
+                } catch (EventException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            return;
+        }
+
         String format = String.format(event.getFormat(), player.getDisplayName(), message);
         event.getRecipients().forEach(recipient -> {
             if (!recipient.hasPermission("automod.staff")) {

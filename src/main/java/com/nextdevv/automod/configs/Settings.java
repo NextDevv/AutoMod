@@ -65,6 +65,13 @@ public class Settings {
     String warnCommand = "/warn {player} {reason}";
     String unwarnCommand = "/unwarn {player}";
 
+    // FIX SECTIONS
+    @YamlComment({
+            "So what this will do? If there's another plugin that modifies chat behavior and bugs the chat, you can add the plugin's name here",
+            "This will fix the chat behavior. If you don't have any plugins that modify chat behavior, you can leave this empty."
+    })
+    String[] chatHandlers = {"UltimateFactionsV2"};
+
     // DEVELOPMENT SECTION
     @YamlComment("Enable debug mode.")
     boolean debug = false;

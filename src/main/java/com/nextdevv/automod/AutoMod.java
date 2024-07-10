@@ -38,6 +38,7 @@ public final class AutoMod extends JavaPlugin {
 
     private final CacheManager cacheManager = new CacheManager(this);
     private final CommandManager commandManager = new CommandManager(this);
+    private final AsyncPlayerChatListener asyncPlayerChatListener = new AsyncPlayerChatListener(this);
 
     @Override
     public void onEnable() {
@@ -136,7 +137,7 @@ public final class AutoMod extends JavaPlugin {
 
     private void registerListeners() {
         getLogger().info("Registering listeners...");
-        getServer().getPluginManager().registerEvents(new AsyncPlayerChatListener(this), this);
+        getServer().getPluginManager().registerEvents(asyncPlayerChatListener, this);
         getServer().getPluginManager().registerEvents(new PlayerCommandPreprocessListener(getMessages(), getSettings()), this);
         // TODO: Fix this
         // getServer().getPluginManager().registerEvents(new SignChangeListener(this), this);
