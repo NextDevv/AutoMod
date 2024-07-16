@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.nextdevv.automod.configs.ConfigLoader;
 import com.nextdevv.automod.listeners.AsyncPlayerChatListener;
 import com.nextdevv.automod.manager.CacheManager;
+import com.nextdevv.automod.utils.VersionChecker;
 import io.lettuce.core.RedisClient;
 import com.nextdevv.automod.api.LiteBans;
 import com.nextdevv.automod.api.PerspectiveAPI;
@@ -30,6 +31,7 @@ public final class AutoMod extends JavaPlugin {
     private RedisManager redisManager;
     private PerspectiveAPI perspectiveAPI;
     private LiteBans liteBans;
+    private VersionChecker versionChecker;
 
     public static AutoMod instance;
     public AutoMod() {
@@ -38,7 +40,7 @@ public final class AutoMod extends JavaPlugin {
 
     private final CacheManager cacheManager = new CacheManager(this);
     private final CommandManager commandManager = new CommandManager(this);
-    private final AsyncPlayerChatListener asyncPlayerChatListener = new AsyncPlayerChatListener(this);
+    private AsyncPlayerChatListener asyncPlayerChatListener;
 
     @Override
     public void onEnable() {
@@ -62,9 +64,17 @@ public final class AutoMod extends JavaPlugin {
         setupCommands();
         hookIntoLiteBans();
         enableMetrics();
+        checkUpdates();
 
         getLogger().info("AutoMod has been enabled.");
         getLogger().info("=== AutoMod ===");
+    }
+
+    private void checkUpdates() {
+        getLogger().info("Checking for updates...");
+        versionChecker = new VersionChecker("NextDevv/AutoMod", this);
+        getServer().getPluginManager().registerEvents(versionChecker, this);
+        versionChecker.checkVersion(getDescription().getVersion());
     }
 
     @Override
@@ -137,6 +147,7 @@ public final class AutoMod extends JavaPlugin {
 
     private void registerListeners() {
         getLogger().info("Registering listeners...");
+        asyncPlayerChatListener = new AsyncPlayerChatListener(this);
         getServer().getPluginManager().registerEvents(asyncPlayerChatListener, this);
         getServer().getPluginManager().registerEvents(new PlayerCommandPreprocessListener(getMessages(), getSettings()), this);
         // TODO: Fix this

@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.nextdevv'
-version = '0.3.9-alpha4'
+version = '0.3.21-alpha4'
 
 repositories {
     mavenCentral()
@@ -30,6 +30,8 @@ dependencies {
     compileOnly group: 'io.lettuce', name: 'lettuce-core', version:'6.2.5.RELEASE'
     implementation files("libs/JsonFlow-1.4.2.jar")
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    // https://mvnrepository.com/artifact/org.jooq/joor
+    implementation 'org.jooq:joor:0.9.15'
 }
 
 kotlin {

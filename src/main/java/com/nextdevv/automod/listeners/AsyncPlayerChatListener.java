@@ -13,7 +13,11 @@ import org.bukkit.event.*;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
+import org.joor.Reflect;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -27,22 +31,44 @@ public class AsyncPlayerChatListener implements Listener {
 
     public AsyncPlayerChatListener(AutoMod plugin) {
         this.plugin = plugin;
-        Arrays.stream(AsyncPlayerChatEvent.getHandlerList().getRegisteredListeners()).forEach(handler -> {
-            if(Arrays.asList(plugin.getSettings().getChatHandlers()).contains(handler.getPlugin().getName())) {
-                AsyncPlayerChatEvent.getHandlerList().unregister(handler);
-                handlers.add(handler);
+
+
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if(plugin.getSettings().isDebug()) {
+                plugin.getLogger().warning("[DEBUG] Chat Handlers Settings: " + Arrays.toString(plugin.getSettings().getChatHandlers()));
             }
+
+            Arrays.stream(AsyncPlayerChatEvent.getHandlerList().getRegisteredListeners()).forEach(handler -> {
+                if(plugin.getSettings().isDebug()) {
+                    plugin.getLogger().warning("[DEBUG] Registered chat handler: " + handler.getPlugin().getName());
+                }
+
+                if(Arrays.asList(plugin.getSettings().getChatHandlers()).contains(handler.getPlugin().getName())) {
+                    try {
+                        Reflect.on(handler).set("ignoreCancelled", true);
+                        handlers.add(handler);
+                        if(plugin.getSettings().isDebug()) {
+                            plugin.getLogger().warning("[DEBUG] ignoreCancelled value: " + handler.isIgnoringCancelled());
+                            plugin.getLogger().warning("[DEBUG] Added chat handler: " + handler.getPlugin().getName());
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
         });
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
+        event.setCancelled(true);
         if (player.hasPermission("automod.bypass") || player.isOp()) {
+            broadcastMessage(event, player, event.getMessage(), event.getMessage());
             return;
         }
+
         MuteManager.checkPlayer(player);
-        event.setCancelled(true);
 
         if(isSpamming(player, event.getMessage())) {
             lastMessage.put(player.getUniqueId(), event.getMessage());

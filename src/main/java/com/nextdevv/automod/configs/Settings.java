@@ -70,7 +70,7 @@ public class Settings {
             "So what this will do? If there's another plugin that modifies chat behavior and bugs the chat, you can add the plugin's name here",
             "This will fix the chat behavior. If you don't have any plugins that modify chat behavior, you can leave this empty."
     })
-    String[] chatHandlers = {"UltimateFactionsV2"};
+    String[] chatHandlers = {"UltimateFactions"};
 
     // DEVELOPMENT SECTION
     @YamlComment("Enable debug mode.")
