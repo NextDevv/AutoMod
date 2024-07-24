@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.nextdevv'
-version = '0.3.21-alpha4'
+version = '0.3.31-release'
 
 repositories {
     mavenCentral()
@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly "org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT"
+    compileOnly "org.spigotmc:spigot-api:1.21-R0.1-SNAPSHOT"
     compileOnly 'com.gitlab.ruany:LiteBansAPI:0.5.0'
     implementation group: 'org.jetbrains', name: 'annotations', version:'22.0.0'
     implementation group: 'org.projectlombok', name: 'lombok', version:'1.18.22'
