@@ -18,4 +18,14 @@ public class StringUtils {
         String[] split = splitOrEmpty(str, regex);
         return index < split.length ? split[index] : "";
     }
+
+    public static String censor(String line, String word, String s) {
+        String[] censorChars = s.split("");
+        for(int i = word.length(); i > 0; i--) {
+            String randomChar = censorChars[(int) (Math.random() * censorChars.length)];
+            line = line.replaceFirst(word, randomChar.repeat(i));
+        }
+        return line;
+    }
 }
+

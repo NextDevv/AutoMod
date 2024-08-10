@@ -1,37 +1,54 @@
 package com.nextdevv.automod;
 
 import com.google.gson.Gson;
-import com.nextdevv.automod.configs.ConfigLoader;
+import com.nextdevv.automod.commands.*;
+import com.nextdevv.automod.commands.sub.*;
+import com.nextdevv.automod.configs.*;
 import com.nextdevv.automod.listeners.AsyncPlayerChatListener;
+import com.nextdevv.automod.listeners.AsyncSignChangeListener;
+import com.nextdevv.automod.listeners.PlayerJoinListener;
+import com.nextdevv.automod.logger.ChatLogger;
 import com.nextdevv.automod.manager.CacheManager;
+import com.nextdevv.automod.manager.MessagesManager;
+import com.nextdevv.automod.manager.MuteManager;
+import com.nextdevv.automod.manager.ReportManager;
+import com.nextdevv.automod.utils.DiscordWebhook;
 import com.nextdevv.automod.utils.VersionChecker;
 import io.lettuce.core.RedisClient;
 import com.nextdevv.automod.api.LiteBans;
 import com.nextdevv.automod.api.PerspectiveAPI;
-import com.nextdevv.automod.commands.CommandManager;
-import com.nextdevv.automod.commands.sub.ReloadCommand;
-import com.nextdevv.automod.commands.sub.StatusCommand;
-import com.nextdevv.automod.commands.sub.UnMuteCommand;
-import com.nextdevv.automod.configs.Messages;
-import com.nextdevv.automod.configs.Settings;
 import com.nextdevv.automod.listeners.PlayerCommandPreprocessListener;
 import com.nextdevv.automod.metrics.Metrics;
 import com.nextdevv.automod.redis.RedisManager;
 import com.nextdevv.automod.utils.ApiKeyValidator;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandMap;
+import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.awt.*;
+import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.Objects;
+
+import static com.nextdevv.automod.manager.MuteManager.handleDiscordIntegration;
 
 @Getter
 public final class AutoMod extends JavaPlugin {
     @Setter private Settings settings;
     @Setter private Messages messages;
+    @Setter private Ignores ignores;
+    @Setter private PlayerModStatus playerModStatus;
+    @Setter private DiscordWebhook discordWebhook;
+    @Setter private DiscordWebhook reportDiscordWebhook;
     private RedisManager redisManager;
     private PerspectiveAPI perspectiveAPI;
     private LiteBans liteBans;
     private VersionChecker versionChecker;
+    private ChatLogger chatLogger;
 
     public static AutoMod instance;
     public AutoMod() {
@@ -40,6 +57,9 @@ public final class AutoMod extends JavaPlugin {
 
     private final CacheManager cacheManager = new CacheManager(this);
     private final CommandManager commandManager = new CommandManager(this);
+    private final MessagesManager messagesManager = new MessagesManager(this);
+    private final ReportManager reportManager = new ReportManager(this);
+
     private AsyncPlayerChatListener asyncPlayerChatListener;
 
     @Override
@@ -63,11 +83,43 @@ public final class AutoMod extends JavaPlugin {
         loadCaches();
         setupCommands();
         hookIntoLiteBans();
+        enableChatLogger();
+        enableDiscordWebhook();
         enableMetrics();
         checkUpdates();
 
         getLogger().info("AutoMod has been enabled.");
         getLogger().info("=== AutoMod ===");
+    }
+
+    public void enableDiscordWebhook() {
+        if(!settings.isDiscordIntegration()) return;
+
+        getLogger().info("Enabling Discord webhook...");
+        discordWebhook = new DiscordWebhook(settings.getDiscordWebhook());
+        reportDiscordWebhook = new DiscordWebhook(settings.getReportDiscordWebhook());
+
+        DiscordWebhook.EmbedObject embedObject = new DiscordWebhook.EmbedObject();
+        embedObject.setColor(Color.GREEN);
+        embedObject.setDescription("AutoMod has been enabled.");
+
+        discordWebhook.setUsername("AutoMod");
+        discordWebhook.addEmbed(embedObject);
+        reportDiscordWebhook.setUsername("AutoMod");
+        reportDiscordWebhook.addEmbed(embedObject);
+
+        try {
+            discordWebhook.execute();
+            reportDiscordWebhook.execute();
+        } catch (Exception e) {
+            getLogger().warning("Failed to send message to Discord webhook: " + e.getMessage());
+        }
+    }
+
+    private void enableChatLogger() {
+        getLogger().info("Enabling chat logger...");
+        chatLogger = new ChatLogger(this);
+        chatLogger.init();
     }
 
     private void checkUpdates() {
@@ -80,7 +132,6 @@ public final class AutoMod extends JavaPlugin {
     @Override
     public void onDisable() {
         getLogger().info("=== AutoMod ===");
-
         if (redisManager != null) {
             getLogger().info("Shutting down Redis connection...");
             redisManager.close();
@@ -93,6 +144,21 @@ public final class AutoMod extends JavaPlugin {
             getLogger().warning("Cache folder is not initialized. Caches will not be saved.");
         }
 
+        getLogger().info("Shutting down chat logger...");
+        chatLogger.save();
+
+        ConfigLoader configLoader = new ConfigLoader(this);
+
+        getLogger().info("Saving player mod status...");
+        PlayerModStatus playerModStatus = new PlayerModStatus();
+        playerModStatus.setMutedPlayers(MuteManager.getMutedPlayersSave());
+        playerModStatus.setWarnedPlayers(MuteManager.getWarnedPlayersSave());
+        configLoader.savePlayerModStatus(playerModStatus);
+
+        getLogger().info("Saving ignores...");
+        configLoader.saveIgnores(ignores);
+
+        handleDiscordIntegration("AutoMod", "", Color.RED, "AutoMod has been disabled.");
         getLogger().info("AutoMod has been disabled.");
         getLogger().info("=== AutoMod ===");
     }
@@ -108,10 +174,16 @@ public final class AutoMod extends JavaPlugin {
 
         settings = configLoader.loadSettings();
         messages = configLoader.loadMessages();
+        ignores = configLoader.loadIgnores();
+        playerModStatus = configLoader.loadPlayerModStatus();
+        playerModStatus.getMutedPlayers().forEach(MuteManager::mutePlayer);
+        playerModStatus.getWarnedPlayers().forEach(MuteManager::warnPlayer);
 
         if(settings.isDebug()) {
             getLogger().info("Loaded settings: " + settings);
             getLogger().info("Loaded messages: " + messages);
+            getLogger().info("Loaded ignores: " + ignores);
+            getLogger().info("Loaded player mod status: " + playerModStatus);
         }
     }
 
@@ -150,6 +222,8 @@ public final class AutoMod extends JavaPlugin {
         asyncPlayerChatListener = new AsyncPlayerChatListener(this);
         getServer().getPluginManager().registerEvents(asyncPlayerChatListener, this);
         getServer().getPluginManager().registerEvents(new PlayerCommandPreprocessListener(getMessages(), getSettings()), this);
+        getServer().getPluginManager().registerEvents(new AsyncSignChangeListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
         // TODO: Fix this
         // getServer().getPluginManager().registerEvents(new SignChangeListener(this), this);
     }
@@ -169,19 +243,62 @@ public final class AutoMod extends JavaPlugin {
         Objects.requireNonNull(getCommand("automod")).setExecutor(commandManager);
         Objects.requireNonNull(getCommand("automod")).setTabCompleter(commandManager);
 
+        if(settings.isPrivateMessaging()) {
+            Objects.requireNonNull(getCommand("message")).setExecutor(new MessageCommand(this));
+            Objects.requireNonNull(getCommand("message")).setTabCompleter(new MessageCommand(this));
+            Objects.requireNonNull(getCommand("reply")).setExecutor(new ReplyCommand(this));
+            Objects.requireNonNull(getCommand("reply")).setTabCompleter(new ReplyCommand(this));
+
+            if(settings.isIgnoreEnabled()) {
+                Objects.requireNonNull(getCommand("ignore")).setExecutor(new IgnoreCommand(this));
+                Objects.requireNonNull(getCommand("ignore")).setTabCompleter(new IgnoreCommand(this));
+            }else unregisterCommand("ignore");
+        }else {
+            unregisterCommand("message");
+            unregisterCommand("reply");
+            unregisterCommand("ignore");
+        }
+
+        if(settings.isReportSystem()) {
+            Objects.requireNonNull(getCommand("report")).setExecutor(new ReportCommand(this));
+            Objects.requireNonNull(getCommand("report")).setTabCompleter(new ReportCommand(this));
+        } else unregisterCommand("report");
+
         commandManager.registerCommand(new ReloadCommand());
         commandManager.registerCommand(new UnMuteCommand());
         commandManager.registerCommand(new StatusCommand());
+        commandManager.registerCommand(new MuteCommand());
+        commandManager.registerCommand(new WarnCommand());
+        commandManager.registerCommand(new ClearChatCommand());
+        commandManager.registerCommand(new HelpCommand());
+        commandManager.registerCommand(new ChatLogsCommand());
+    }
+
+    private void unregisterCommand(String name) {
+        try {
+            Field commandMapField = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+            commandMapField.setAccessible(true);
+            CommandMap commandMap = (CommandMap) commandMapField.get(Bukkit.getServer());
+            Field knownCommandsField = SimpleCommandMap.class.getDeclaredField("knownCommands");
+            knownCommandsField.setAccessible(true);
+            Map<String, Command> knownCommands = (Map<String, Command>) knownCommandsField.get(commandMap);
+            knownCommands.remove(name);
+            getLogger().info("Disabling command > " + name);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     private void hookIntoLiteBans() {
-        getLogger().info("Hooking into LiteBans...");
-        if (getServer().getPluginManager().getPlugin("LiteBans") != null) {
-            getLogger().info("LiteBans has been found. Hooking into LiteBans...");
-            liteBans = new LiteBans(this);
-            liteBans.register();
-        } else {
-            getLogger().warning("LiteBans has not been found. Some features may not work properly.");
+        if(settings.isLiteBanSupport()) {
+            getLogger().info("Hooking into LiteBans...");
+            if (getServer().getPluginManager().getPlugin("LiteBans") != null) {
+                getLogger().info("LiteBans has been found. Hooking into LiteBans...");
+                liteBans = new LiteBans(this);
+                liteBans.register();
+            } else {
+                getLogger().warning("LiteBans has not been found. Some features may not work properly.");
+            }
         }
     }
 

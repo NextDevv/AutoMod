@@ -19,6 +19,27 @@ commands:
     aliases:
     - am
     - autom
+  message:
+    description: 'Message a player'
+    usage: '/message <player> <message>'
+    aliases:
+      - msg
+      - m
+  reply:
+    description: 'Reply to a player'
+    usage: '/reply <message>'
+    aliases:
+      - r
+  ignore:
+    description: 'Ignore a player'
+    usage: '/ignore <player>'
+    aliases:
+      - ig
+  report:
+    description: 'Report a player'
+    usage: '/report <player> <reason>'
+    aliases:
+      - rep
 
 permissions:
   automod.command:
@@ -29,4 +50,10 @@ permissions:
     default: op
   automod.staff:
     description: 'Staff AutoMod'
+    default: op
+  automod.reports:
+    description: 'View reports'
+    default: op
+  automod.spy-dms:
+    description: 'Spy on dms'
     default: op

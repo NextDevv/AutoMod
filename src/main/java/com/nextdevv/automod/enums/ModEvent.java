@@ -9,7 +9,12 @@ public enum ModEvent {
     MUTE("mute"),
     UNMUTE("unmute"),
     CLEAR_WARNINGS("clear_warnings"),
-    MSG("msg");
+    MSG("msg"),
+    NOTIFY("notify"),
+    IGNORE("ignore"),
+    ERROR("error"),
+    SUCCESS("success"),
+    REPORT("report");
 
     private final String name;
 

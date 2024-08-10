@@ -1,8 +1,8 @@
 package com.nextdevv.automod.commands.sub;
 
 import com.nextdevv.automod.commands.ICommand;
+import com.nextdevv.automod.manager.MuteManager;
 import com.nextdevv.automod.utils.ChatUtils;
-import com.nextdevv.automod.utils.MuteManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -46,7 +46,7 @@ public class UnMuteCommand implements ICommand {
             return;
         }
 
-        MuteManager.unmutePlayer(player.getUniqueId());
+        MuteManager.unmutePlayer(player.getUniqueId(), "Unmuted by " + sender.getName());
         ChatUtils.msg(sender, "Player unmuted.");
     }
 }

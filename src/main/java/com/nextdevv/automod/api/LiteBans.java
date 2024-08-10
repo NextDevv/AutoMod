@@ -1,7 +1,7 @@
 package com.nextdevv.automod.api;
 
 import com.nextdevv.automod.AutoMod;
-import com.nextdevv.automod.utils.MuteManager;
+import com.nextdevv.automod.manager.MuteManager;
 import litebans.api.Database;
 import litebans.api.Entry;
 import litebans.api.Events;

@@ -1,9 +1,9 @@
 package com.nextdevv.automod.api;
 
 import com.nextdevv.automod.AutoMod;
+import com.nextdevv.automod.manager.MuteManager;
 import com.nextdevv.automod.models.Cache;
 import com.nextdevv.automod.utils.LinkDetector;
-import com.nextdevv.automod.utils.MuteManager;
 import com.nextdevv.automod.utils.Pair;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;

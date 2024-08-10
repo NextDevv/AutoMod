@@ -2,18 +2,27 @@ package com.nextdevv.automod.redis;
 
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.nextdevv.automod.AutoMod;
 import com.nextdevv.automod.enums.ModEvent;
+import com.nextdevv.automod.events.ErrorEvent;
+import com.nextdevv.automod.manager.MuteManager;
 import com.nextdevv.automod.redis.redisdata.RedisAbstract;
-import io.lettuce.core.RedisClient;
 import com.nextdevv.automod.redis.redisdata.RedisPubSub;
-import com.nextdevv.automod.utils.MuteManager;
+import com.nextdevv.automod.utils.ChatUtils;
+import io.lettuce.core.RedisClient;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 
+import java.awt.*;
 import java.io.File;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.nextdevv.automod.manager.MuteManager.handleDiscordIntegration;
+import static com.nextdevv.automod.utils.ChatUtils.msg;
 
 
 public class RedisManager extends RedisAbstract {
@@ -43,7 +52,10 @@ public class RedisManager extends RedisAbstract {
                     plugin.getLogger().finest("Message: " + jsonObject);
 
                     ModEvent event = ModEvent.valueOf(jsonObject.get("event").getAsString());
-                    UUID target = UUID.fromString(jsonObject.get("player").getAsString());
+                    JsonElement targetUuid = jsonObject.get("player");
+                    UUID target = null;
+                    if(targetUuid != null)
+                        target = UUID.fromString(targetUuid.getAsString());
 
                     switch (event) {
                         case MUTE:
@@ -67,6 +79,52 @@ public class RedisManager extends RedisAbstract {
                                 else
                                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', jsonObject.get("unfilteredMessage").getAsString()));
                             });
+                            break;
+                        case MSG:
+                            Bukkit.getOnlinePlayers().forEach(player -> {
+                                if (player.getName().equalsIgnoreCase(jsonObject.get("receiver").getAsString())) {
+                                    AtomicBoolean isIgnoring = new AtomicBoolean(false);
+                                    plugin.getIgnores().getIgnores().stream().filter(i -> i.uuid().equals(player.getUniqueId().toString())).forEach(i -> {
+                                        if (i.ignoredPlayers().contains(jsonObject.get("senderUuid").getAsString())) {
+                                            ErrorEvent errorEvent = new ErrorEvent("Player is ignoring you.", jsonObject.get("sender").getAsString());
+                                            errorEvent.send();
+                                            isIgnoring.set(true);
+                                        }
+                                    });
+
+                                    if (isIgnoring.get()) return;
+                                    Bukkit.getOnlinePlayers().forEach(player2 -> {
+                                        if(player2.hasPermission("automod.spy-dms")) {
+                                            msg(player2, plugin.getSettings().getPrivateMessagesFormat()
+                                                    .replace("{sender}", jsonObject.get("sender").getAsString())
+                                                    .replace("{receiver}", jsonObject.get("receiver").getAsString())
+                                                    .replace("{message}", jsonObject.get("message").getAsString())
+                                            );
+                                        }
+                                    });
+                                    plugin.getMessagesManager().sendMessage(jsonObject.get("sender").getAsString(), jsonObject.get("receiver").getAsString(), jsonObject.get("message").getAsString());
+                                    handleDiscordIntegration("Private message from " + jsonObject.get("sender").getAsString()
+                                            + " to " + jsonObject.get("receiver").getAsString(), Color.GREEN, jsonObject.get("message").getAsString());
+                                }
+                            });
+
+                            ErrorEvent errorEvent = new ErrorEvent("Player not online.", jsonObject.get("sender").getAsString());
+                            errorEvent.send();
+                            break;
+                        case NOTIFY:
+                            Bukkit.getOnlinePlayers().forEach(player -> {
+                                if (player.hasPermission("automod.staff"))
+                                    ChatUtils.msg(player, plugin.getMessages().getNotifyStaff()
+                                            .replace("{sender}", jsonObject.get("sender").getAsString())
+                                            .replace("{message}", jsonObject.get("message").getAsString())
+                                    );
+                            });
+                            break;
+                        case ERROR, SUCCESS:
+                            ChatUtils.msg(
+                                    Objects.requireNonNull(Bukkit.getPlayer(jsonObject.get("receiver").getAsString())),
+                                    jsonObject.get("message").getAsString()
+                            );
                             break;
                     }
                 }

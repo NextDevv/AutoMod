@@ -1,4 +1,4 @@
-package com.nextdevv.automod.models;
+package com.nextdevv.automod.events;
 
 import com.nextdevv.automod.enums.ModEvent;
 import lombok.Getter;
