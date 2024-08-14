@@ -24,6 +24,7 @@ public class MessageCommand implements CommandExecutor, TabExecutor {
         this.plugin = plugin;
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if(!plugin.getSettings().isPrivateMessaging()) return true;

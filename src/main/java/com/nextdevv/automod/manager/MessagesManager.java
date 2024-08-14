@@ -3,6 +3,7 @@ package com.nextdevv.automod.manager;
 import com.nextdevv.automod.AutoMod;
 import com.nextdevv.automod.models.PlayerIgnore;
 import com.nextdevv.automod.utils.ChatUtils;
+import com.nextdevv.automod.utils.Debug;
 import com.nextdevv.automod.utils.LinkDetector;
 import com.nextdevv.automod.utils.Pair;
 import org.bukkit.Bukkit;
@@ -29,38 +30,31 @@ public class MessagesManager {
     public void sendMessage(String sender, String receiver, String message) {
         Pair<String, String> messagePair = new Pair<>(sender, receiver);
         long currentTime = System.currentTimeMillis();
-
         Player receiverPlayer = Bukkit.getPlayer(receiver);
         Player senderPlayer = Bukkit.getPlayer(sender);
 
-        // check if receiver is ignoring sender
         if (receiverPlayer != null && plugin.getSettings().isIgnoreEnabled()) {
-            Optional<PlayerIgnore> ignore = plugin.getIgnores().getIgnores()
-                    .stream()
+            Optional<PlayerIgnore> ignore = plugin.getIgnores().getIgnores().stream()
                     .filter(i -> i.uuid().equals(receiverPlayer.getUniqueId().toString()))
                     .findAny();
 
-            if(plugin.getSettings().isDebug()) {
-                plugin.getLogger().info("[Debug] Ignore: " + ignore);
-                plugin.getLogger().info("[Debug] Present: " + ignore.isPresent());
-                plugin.getLogger().info("[Debug] Ignored Players: " + (ignore.map(PlayerIgnore::ignoredPlayers).orElse(null)));
-                plugin.getLogger().info("[Debug] Sender: " + sender);
-                plugin.getLogger().info("[Debug] Sender Player: " + senderPlayer);
-                plugin.getLogger().info("[Debug] Ignore All: " + (ignore.isPresent() && ignore.get().ignoreAll()));
-                plugin.getLogger().info("[Debug] Condition: " + (ignore.isPresent() && ignore.get().ignoredPlayers().contains(sender) && !sender.equals("CONSOLE") && senderPlayer != null));
-            }
+            // DEBUG LOGS
+            Debug.log("Ignore: " + ignore);
+            Debug.log("Present: " + ignore.isPresent());
+            Debug.log("Ignored Players: " + (ignore.map(PlayerIgnore::ignoredPlayers).orElse(null)));
+            Debug.log("Sender: " + sender);
+            Debug.log("Sender Player: " + senderPlayer);
+            Debug.log("Ignore All: " + (ignore.isPresent() && ignore.get().ignoreAll()));
+            Debug.log("Condition: " + (ignore.isPresent() && ignore.get().ignoredPlayers().contains(sender) && !sender.equals("CONSOLE") && senderPlayer != null));
+            // END OF DEBUG LOGS
 
-            if(ignore.isPresent() && ignore.get().ignoreAll() && senderPlayer != null) {
-                ChatUtils.msg(senderPlayer, plugin.getMessages().getIgnored()
-                        .replace("{player}", receiverPlayer.getName()));
+            if (ignore.isPresent() && ignore.get().ignoreAll() && senderPlayer != null) {
+                ChatUtils.msg(senderPlayer, plugin.getMessages().getIgnored().replace("{player}", receiverPlayer.getName()));
                 return;
             }
 
-            if (ignore.isPresent()
-                    && ignore.get().ignoredPlayers().contains(senderPlayer != null ? senderPlayer.getUniqueId().toString() : null)
-                    && !sender.equals("CONSOLE") && senderPlayer != null) {
-                ChatUtils.msg(senderPlayer, plugin.getMessages().getIgnored()
-                        .replace("{player}", receiverPlayer.getName()));
+            if (ignore.isPresent() && ignore.get().ignoredPlayers().contains(senderPlayer != null ? senderPlayer.getUniqueId().toString() : null) && !sender.equals("CONSOLE") && senderPlayer != null) {
+                ChatUtils.msg(senderPlayer, plugin.getMessages().getIgnored().replace("{player}", receiverPlayer.getName()));
                 return;
             }
         }
@@ -81,22 +75,22 @@ public class MessagesManager {
                 public void run() {
                     String moderatedMessage = message;
 
-                    if(plugin.getSettings().isModeratePrivateMessages()) {
+                    if (plugin.getSettings().isModeratePrivateMessages()) {
                         try {
                             boolean cached = false;
-                            if(plugin.getCacheManager().isCached(message)) {
+                            if (plugin.getCacheManager().isCached(message)) {
                                 moderatedMessage = plugin.getCacheManager().getCache(message).censored();
                                 cached = true;
                             }
 
-                            if(!cached) {
-                                if(plugin.getSettings().isFilterLinksInPrivateMessages()) {
+                            if (!cached) {
+                                if (plugin.getSettings().isFilterLinksInPrivateMessages()) {
                                     moderatedMessage = LinkDetector.censor(message, plugin.getSettings().getCensorCharacters());
                                 }
 
                                 CompletableFuture<Pair<String, Boolean>> censored = plugin.getPerspectiveAPI().censorAsync(message);
                                 Pair<String, Boolean> censoredPair = censored.get();
-                                if(censoredPair.getSecond()) {
+                                if (censoredPair.getSecond()) {
                                     moderatedMessage = censoredPair.getFirst();
                                 }
                             }
@@ -125,35 +119,15 @@ public class MessagesManager {
     }
 
     public void clearMessages(String sender, String receiver) {
-        Pair<String, String> messagePair = new Pair<>(sender, receiver);
-        messages.remove(messagePair);
+        messages.remove(new Pair<>(sender, receiver));
     }
 
     public String getLastChatter(String sender) {
-        List<Pair<String, String>> pairs = new ArrayList<>(messages.keySet());
-        for(Pair<String, String> pair : messages.keySet()) {
-            if(pair.getFirst().equals(sender) || pair.getSecond().equals(sender)) {
-                pairs.add(pair);
-            }
-        }
-
-        if(!pairs.isEmpty()) {
-            long last = 0;
-            Pair<String, String> lastPair = null;
-            for (Pair<String, String> pair : pairs) {
-                Pair<Long, List<String>> value = messages.get(pair);
-                if(value.getFirst() > last) {
-                    last = value.getFirst();
-                    lastPair = pair;
-                }
-            }
-
-            if(lastPair != null) {
-                return lastPair.getFirst().equals(sender) ? lastPair.getSecond() : lastPair.getFirst();
-            }
-        }
-
-        return null;
+        return messages.keySet().stream()
+                .filter(pair -> pair.getFirst().equals(sender) || pair.getSecond().equals(sender))
+                .max(Comparator.comparingLong(pair -> messages.get(pair).getFirst()))
+                .map(pair -> pair.getFirst().equals(sender) ? pair.getSecond() : pair.getFirst())
+                .orElse(null);
     }
 
     public void clearAllMessages() {

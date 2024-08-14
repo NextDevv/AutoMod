@@ -1,6 +1,7 @@
 package com.nextdevv.automod;
 
 import com.google.gson.Gson;
+import com.nextdevv.automod.api.VpnProxyDetector;
 import com.nextdevv.automod.commands.*;
 import com.nextdevv.automod.commands.sub.*;
 import com.nextdevv.automod.configs.*;
@@ -46,6 +47,7 @@ public final class AutoMod extends JavaPlugin {
     @Setter private DiscordWebhook reportDiscordWebhook;
     private RedisManager redisManager;
     private PerspectiveAPI perspectiveAPI;
+    private VpnProxyDetector vpnProxyDetector;
     private LiteBans liteBans;
     private VersionChecker versionChecker;
     private ChatLogger chatLogger;
@@ -80,6 +82,7 @@ public final class AutoMod extends JavaPlugin {
 
         registerListeners();
         connectToPerspectiveAPI();
+        enableVpnProxyDetector();
         loadCaches();
         setupCommands();
         hookIntoLiteBans();
@@ -90,6 +93,11 @@ public final class AutoMod extends JavaPlugin {
 
         getLogger().info("AutoMod has been enabled.");
         getLogger().info("=== AutoMod ===");
+    }
+
+    private void enableVpnProxyDetector() {
+        getLogger().info("Enabling VPN Proxy detector...");
+        vpnProxyDetector = new VpnProxyDetector(this);
     }
 
     public void enableDiscordWebhook() {

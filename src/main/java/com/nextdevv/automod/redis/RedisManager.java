@@ -103,7 +103,7 @@ public class RedisManager extends RedisAbstract {
                                         }
                                     });
                                     plugin.getMessagesManager().sendMessage(jsonObject.get("sender").getAsString(), jsonObject.get("receiver").getAsString(), jsonObject.get("message").getAsString());
-                                    handleDiscordIntegration("Private message from " + jsonObject.get("sender").getAsString()
+                                    handleDiscordIntegration("AutoMod", "Private message from " + jsonObject.get("sender").getAsString()
                                             + " to " + jsonObject.get("receiver").getAsString(), Color.GREEN, jsonObject.get("message").getAsString());
                                 }
                             });

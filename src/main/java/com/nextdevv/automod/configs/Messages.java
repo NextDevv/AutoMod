@@ -65,4 +65,6 @@ public class Messages {
     String noChatLogsFound = "{prefix} No chat logs were found.";
     @YamlComment("Error message when the page is not found.")
     String pageNotFound = "{prefix} &cPage not found!";
+    @YamlComment("Kick message when the player is using a VPN or Proxy.")
+    String vpnProxy = "{prefix} &cYou are using a VPN or Proxy!";
 }

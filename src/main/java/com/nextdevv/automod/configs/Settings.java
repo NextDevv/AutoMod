@@ -209,6 +209,28 @@ public class Settings implements Cloneable {
     @YamlComment("Max username length.")
     int maxUsernameLength = 16;
 
+    // VPN DETECTION
+    @YamlComment({
+            "=== VPN DETECTION ===",
+            "",
+            "Enable VPN detection."
+    })
+    boolean vpnDetection = true;
+    @YamlComment("VPN detection threshold. If the score is greater than this value, the player will be considered using a VPN.")
+    double vpnThreshold = 0.5;
+    @YamlComment("Contact email address required for getipintel.net API. Learn more on https://getipintel.net/free-proxy-vpn-tor-detection-api/#FAQ")
+    String contactEmail = "YOUR_EMAIL_ADDRESS";
+    @YamlComment("Exclude users from the VPN detection.")
+    String[] excludeUsers = {"user1", "user2"};
+    @YamlComment("Flag to use for VPN detection. default b. [m, b, f]")
+    char flags = 'b';
+    @YamlComment("oFlags to use for VPN detection. _ for empty. [b, c, i, a]")
+    char oflags = '_';
+    @YamlComment("Should the plugin output the VPN detection result.")
+    boolean vpnOutput = false;
+    @YamlComment("Kick players using a VPN.")
+    boolean vpnKick = true;
+
     // DEVELOPMENT SECTION
     @YamlComment({
             "=== DEVELOPMENT SECTION ===",
@@ -218,6 +240,7 @@ public class Settings implements Cloneable {
     boolean debug = false;
     @YamlComment("Enable verbose mode.")
     boolean verbose = false;
+
 
     @Override
     public String toString() {

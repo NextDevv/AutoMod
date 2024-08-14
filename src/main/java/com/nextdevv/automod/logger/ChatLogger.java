@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,8 +16,8 @@ public class ChatLogger {
     private final AutoMod plugin;
     private File currentLogFile;
     private File logFolder;
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private List<String> logs = new ArrayList<>();
+    private SimpleDateFormat dateFormat;
+    private final List<String> logs = new ArrayList<>();
 
     public ChatLogger(AutoMod plugin) {
         this.plugin = plugin;
@@ -26,18 +25,14 @@ public class ChatLogger {
 
     public void init() {
         logFolder = new File(plugin.getDataFolder(), "logs");
-        if (!logFolder.exists()) {
-            boolean successful = logFolder.mkdirs();
-            if (!successful) {
-                throw new RuntimeException("Failed to create logs folder.");
-            }
+        if (!logFolder.exists() && !logFolder.mkdirs()) {
+            throw new RuntimeException("Failed to create logs folder.");
         }
 
         currentLogFile = new File(logFolder, "chat.log");
-        if(!currentLogFile.exists()) {
+        if (!currentLogFile.exists()) {
             try {
-                boolean successful = currentLogFile.createNewFile();
-                if (!successful) {
+                if (!currentLogFile.createNewFile()) {
                     throw new RuntimeException("Failed to create chat.log file.");
                 }
             } catch (Exception e) {
@@ -49,56 +44,40 @@ public class ChatLogger {
     }
 
     public void log(Player player, String message, boolean toxic) {
-        String format;
-        if(toxic) {
-            format = plugin.getSettings().getToxicChatLogFormat();
-        }else format = plugin.getSettings().getChatLogFormat();
-        format = format
-                .replace("{date}", dateFormat.format(new Date()))
+        String format = toxic ? plugin.getSettings().getToxicChatLogFormat() : plugin.getSettings().getChatLogFormat();
+        logs.add(format.replace("{date}", dateFormat.format(new Date()))
                 .replace("{message}", message)
-                .replace("{player}", player.getName());
-
-        logs.add(format);
+                .replace("{player}", player.getName()));
     }
 
     public void logSign(Player player, Location location, String message, boolean toxic) {
-        String format;
-        if(toxic) {
-            format = plugin.getSettings().getToxicSignLogFormat();
-        }else format = plugin.getSettings().getSignLogFormat();
-        format = format
-                .replace("{date}", dateFormat.format(new Date()))
+        String format = toxic ? plugin.getSettings().getToxicSignLogFormat() : plugin.getSettings().getSignLogFormat();
+        logs.add(format.replace("{date}", dateFormat.format(new Date()))
                 .replace("{message}", message)
                 .replace("{player}", player.getName())
                 .replace("{world}", Objects.requireNonNull(location.getWorld()).getName())
                 .replace("{x}", String.valueOf(location.getBlockX()))
                 .replace("{y}", String.valueOf(location.getBlockY()))
-                .replace("{z}", String.valueOf(location.getBlockZ()));
-
-        logs.add(format);
+                .replace("{z}", String.valueOf(location.getBlockZ())));
     }
 
     public void save() {
         try {
-            if(!currentLogFile.exists()) {
+            if (!currentLogFile.exists()) {
                 plugin.getLogger().warning("Chat log file not found.");
                 return;
             }
-            String fileNameFormat = plugin.getSettings().getChatLogFileName();
-            Date date = new Date();
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-            String fileName = fileNameFormat.replace("{date}", format.format(date));
+            String fileName = plugin.getSettings().getChatLogFileName().replace("{date}", new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date()));
             File newLogFile = new File(logFolder, fileName);
-            boolean successful = currentLogFile.renameTo(newLogFile);
-            if (!successful) {
+            if (!currentLogFile.renameTo(newLogFile)) {
                 throw new RuntimeException("Failed to save chat logs.");
             }
             currentLogFile = newLogFile;
-            FileWriter writer = new FileWriter(currentLogFile, true);
-            for(String log : logs) {
-                writer.write(log + "\n");
+            try (FileWriter writer = new FileWriter(currentLogFile, true)) {
+                for (String log : logs) {
+                    writer.write(log + "\n");
+                }
             }
-            writer.close();
             logs.clear();
             currentLogFile = new File(logFolder, "chat.log");
         } catch (Exception e) {
@@ -117,8 +96,7 @@ public class ChatLogger {
         }
 
         for (int start = 0; start < logs.size(); start += i) {
-            int end = Math.min(start + i, logs.size());
-            result.add(new ArrayList<>(logs.subList(start, end)));
+            result.add(new ArrayList<>(logs.subList(start, Math.min(start + i, logs.size()))));
         }
 
         return result;

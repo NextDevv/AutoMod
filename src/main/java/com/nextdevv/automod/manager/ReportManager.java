@@ -10,7 +10,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.nextdevv.automod.manager.MuteManager.handleDiscordIntegration;
 import static com.nextdevv.automod.utils.ChatUtils.msg;
 
 public class ReportManager {
@@ -23,10 +22,6 @@ public class ReportManager {
 
     public void add(ReportEvent report) {
         reports.add(report);
-    }
-
-    public void remove(ReportEvent report) {
-        reports.remove(report);
     }
 
     public void notify(ReportEvent report) {

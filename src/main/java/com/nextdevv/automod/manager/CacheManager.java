@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.nio.file.Files.*;
+import static java.nio.file.Files.readAllBytes;
 
 public class CacheManager {
     @Getter
@@ -22,18 +22,18 @@ public class CacheManager {
     private long lastDataSave = 0;
     private final AutoMod plugin;
 
-    public boolean folderInitialized() {
-        return folder != null && folder.exists();
-    }
-
     public CacheManager(AutoMod plugin) {
         this.plugin = plugin;
     }
 
+    public boolean folderInitialized() {
+        return folder != null && folder.exists();
+    }
+
     public void addCache(Cache cache) {
-        if(cacheList.stream().anyMatch(c -> c.message().equals(cache.message())))
-            return;
-        cacheList.add(cache);
+        if (cacheList.stream().noneMatch(c -> c.message().equals(cache.message()))) {
+            cacheList.add(cache);
+        }
     }
 
     public void clearCache() {
@@ -42,11 +42,8 @@ public class CacheManager {
 
     public void load() {
         folder = new File(plugin.getDataFolder(), "cache");
-        if (!folder.exists()) {
-            boolean successful = folder.mkdirs();
-            if (!successful) {
-                throw new RuntimeException("Failed to create cache folder.");
-            }
+        if (!folder.exists() && !folder.mkdirs()) {
+            throw new RuntimeException("Failed to create cache folder.");
         }
 
         JsonFile file = new JsonFile(new File(folder, "cache.json"));
@@ -58,21 +55,16 @@ public class CacheManager {
 
         try {
             ArrayList<?> cachesObj = (ArrayList<?>) file.getObj2("caches", ArrayList.class);
-            ArrayList<Cache> caches = new ArrayList<>();
-
             for (Object obj : cachesObj) {
-                @SuppressWarnings("unchecked") LinkedTreeMap<String, Object> cacheMap
-                        = (LinkedTreeMap<String, Object>) obj;
-                caches.add(new Cache(cacheMap));
+                @SuppressWarnings("unchecked")
+                LinkedTreeMap<String, Object> cacheMap = (LinkedTreeMap<String, Object>) obj;
+                cacheList.add(new Cache(cacheMap));
             }
-
-            cacheList.addAll(caches);
-            plugin.getLogger().info("Loaded " + caches.size() + " cache(s).");
+            plugin.getLogger().info("Loaded " + cacheList.size() + " cache(s).");
             file.save();
-        }catch (Exception e) {
+        } catch (Exception e) {
             plugin.getLogger().severe("Failed to load cache file.");
         }
-
 
         File lastSave = getSaveFile();
         try {
@@ -82,31 +74,27 @@ public class CacheManager {
             lastDataSave = System.currentTimeMillis();
         }
 
-        if(System.currentTimeMillis() - lastDataSave > (long) plugin.getSettings().getCacheExpireDays() * 24 * 60 * 60 * 1000) {
+        if (System.currentTimeMillis() - lastDataSave > plugin.getSettings().getCacheExpireDays() * 86400000L) {
             clearCache();
             save();
-            boolean success = lastSave.delete();
-            if (!success) {
+            if (!lastSave.delete()) {
                 throw new RuntimeException("Failed to delete lastSave file.");
             }
-
             plugin.getLogger().warning("Cache expired. Cleared all caches.");
         }
     }
 
     private File getSaveFile() {
         File lastSave = new File(folder, "lastSave");
-        if(!lastSave.exists()) {
+        if (!lastSave.exists()) {
             try {
-                boolean success = lastSave.createNewFile();
-                if (!success) {
+                if (!lastSave.createNewFile()) {
                     throw new RuntimeException("Failed to create lastSave file.");
                 }
             } catch (Exception e) {
                 plugin.getLogger().severe("Failed to create lastSave file.");
             }
         }
-
         return lastSave;
     }
 

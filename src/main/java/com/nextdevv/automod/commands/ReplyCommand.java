@@ -24,37 +24,34 @@ public class ReplyCommand implements CommandExecutor, TabExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if(!plugin.getSettings().isPrivateMessaging()) return true;
+        if (!plugin.getSettings().isPrivateMessaging()) return true;
 
-        if(sender instanceof Player player) {
+        if (sender instanceof Player player) {
             MuteManager.checkPlayer(player.getUniqueId());
-            if(!plugin.getSettings().isMutedCanSendPrivateMessages()) {
-                if(MuteManager.isMuted(player.getUniqueId())) {
-                    msg(player, plugin.getMessages().getMuted());
-                    return true;
-                }
+            if (!plugin.getSettings().isMutedCanSendPrivateMessages() && MuteManager.isMuted(player.getUniqueId())) {
+                msg(player, plugin.getMessages().getMuted());
+                return true;
             }
         }
 
-        String senderName = sender.getName();
-        if(args.length < 1) {
+        if (args.length < 1) {
             msg(sender, "Usage: /reply <message>");
             return true;
         }
 
+        String senderName = sender.getName();
         String targetName = plugin.getMessagesManager().getLastChatter(senderName);
-        if(targetName == null) {
+        if (targetName == null) {
             msg(sender, "You have no one to reply to.");
             return true;
         }
 
         String message = String.join(" ", args);
-
-        if(plugin.getServer().getPlayer(targetName) == null) {
+        if (plugin.getServer().getPlayer(targetName) == null) {
             if (plugin.getSettings().isRequiresMultiInstance()) {
                 MsgEvent event = new MsgEvent(message, senderName, targetName, sender instanceof org.bukkit.entity.HumanEntity ? ((org.bukkit.entity.HumanEntity) sender).getUniqueId().toString() : null);
                 plugin.getRedisManager().publish(event.toJson());
-            } else if(!targetName.equals("CONSOLE")) {
+            } else if (!targetName.equals("CONSOLE")) {
                 msg(sender, "Player not online.");
                 return true;
             }
@@ -63,8 +60,7 @@ public class ReplyCommand implements CommandExecutor, TabExecutor {
         msg(sender, plugin.getSettings().getPrivateMessagesFormat()
                 .replace("{sender}", senderName)
                 .replace("{receiver}", targetName)
-                .replace("{message}", message)
-        );
+                .replace("{message}", message));
         plugin.getMessagesManager().sendMessage(senderName, targetName, message);
         return true;
     }

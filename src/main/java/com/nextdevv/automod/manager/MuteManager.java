@@ -25,37 +25,15 @@ public class MuteManager {
     private static final HashMap<UUID, String> warningReasons = new HashMap<>();
     private static final AutoMod plugin = JavaPlugin.getPlugin(AutoMod.class);
 
-    public static void handleDiscordIntegration(String title, Color color, String description) {
-        if (plugin.getSettings().isDiscordIntegration()) {
-            try {
-                DiscordWebhook webhook = plugin.getDiscordWebhook();
-                webhook.clearEmbeds();
-                webhook.setUsername("AutoMod");
-                DiscordWebhook.EmbedObject embed = new DiscordWebhook.EmbedObject();
-                embed.setTitle(title);
-                embed.setColor(color);
-                embed.setDescription(description);
-                webhook.addEmbed(embed);
-                webhook.execute();
-            }catch (Exception e) {
-                plugin.getLogger().severe("Failed to send Discord message: " + e.getMessage());
-            }
-        }
-    }
-
     public static void handleDiscordIntegration(String username, String title, Color color, String description) {
         if (plugin.getSettings().isDiscordIntegration()) {
             try {
                 DiscordWebhook webhook = plugin.getDiscordWebhook();
                 webhook.clearEmbeds();
                 webhook.setUsername(username);
-                DiscordWebhook.EmbedObject embed = new DiscordWebhook.EmbedObject();
-                embed.setTitle(title);
-                embed.setColor(color);
-                embed.setDescription(description);
-                webhook.addEmbed(embed);
+                webhook.addEmbed(new DiscordWebhook.EmbedObject().setTitle(title).setColor(color).setDescription(description));
                 webhook.execute();
-            }catch (Exception e) {
+            } catch (Exception e) {
                 plugin.getLogger().severe("Failed to send Discord message: " + e.getMessage());
             }
         }
@@ -66,7 +44,6 @@ public class MuteManager {
         jsonObject.addProperty("event", event.getName());
         jsonObject.addProperty("player", player.toString());
         jsonObject.addProperty("reason", reason);
-
         if (plugin.getSettings().isRequiresMultiInstance()) {
             plugin.getRedisManager().publish(jsonObject);
         }
@@ -75,24 +52,16 @@ public class MuteManager {
     public static void mutePlayer(UUID player) {
         mutedPlayers.put(player, System.currentTimeMillis() + plugin.getSettings().getMuteTime());
         mutedReasons.put(player, "Muted by AutoMod");
-
-        if (plugin.getSettings().isLiteBanSupport()) {
-            plugin.getLiteBans().mutePlayer(player);
-        }
-
+        if (plugin.getSettings().isLiteBanSupport()) plugin.getLiteBans().mutePlayer(player);
         publishEvent(ModEvent.MUTE, player, "Muted by AutoMod");
-        handleDiscordIntegration(plugin.getServer().getOfflinePlayer(player).getName() + " has been muted", Color.RED, "Reason: Muted by AutoMod");
+        handleDiscordIntegration(plugin.getServer().getOfflinePlayer(player).getName(), " has been muted", Color.RED, "Reason: Muted by AutoMod");
     }
 
     public static void unmutePlayer(UUID player, String reason) {
         mutedPlayers.remove(player);
-
-        if (plugin.getSettings().isLiteBanSupport()) {
-            plugin.getLiteBans().unmutePlayer(player);
-        }
-
+        if (plugin.getSettings().isLiteBanSupport()) plugin.getLiteBans().unmutePlayer(player);
         publishEvent(ModEvent.UNMUTE, player, reason);
-        handleDiscordIntegration(plugin.getServer().getOfflinePlayer(player).getName() + " has been unmuted", Color.GREEN, "Reason: Unmuted by AutoMod");
+        handleDiscordIntegration(plugin.getServer().getOfflinePlayer(player).getName(), " has been unmuted", Color.GREEN, "Reason: " + reason);
     }
 
     public static void unmutePlayer(UUID player) {
@@ -108,16 +77,11 @@ public class MuteManager {
     }
 
     public static void warnPlayer(UUID player) {
-        warnings.merge(player, new Pair<>(System.currentTimeMillis(), 1), (oldPair, newPair) ->
-                new Pair<>(oldPair.getFirst(), oldPair.getSecond() + 1));
+        warnings.merge(player, new Pair<>(System.currentTimeMillis(), 1), (oldPair, newPair) -> new Pair<>(oldPair.getFirst(), oldPair.getSecond() + 1));
         warningReasons.put(player, "Warned by AutoMod");
-
-        if (plugin.getSettings().isLiteBanSupport()) {
-            plugin.getLiteBans().warnPlayer(player);
-        }
-
+        if (plugin.getSettings().isLiteBanSupport()) plugin.getLiteBans().warnPlayer(player);
         publishEvent(ModEvent.WARN, player, "Warned by AutoMod");
-        handleDiscordIntegration(plugin.getServer().getOfflinePlayer(player).getName() + " has been warned", Color.YELLOW, "Reason: Warned by AutoMod");
+        handleDiscordIntegration(plugin.getServer().getOfflinePlayer(player).getName(), " has been warned", Color.YELLOW, "Reason: Warned by AutoMod");
     }
 
     public static int getWarnings(UUID player) {
@@ -126,13 +90,9 @@ public class MuteManager {
 
     public static void clearWarnings(UUID player) {
         warnings.remove(player);
-
-        if (plugin.getSettings().isLiteBanSupport()) {
-            plugin.getLiteBans().clearWarnings(player);
-        }
-
+        if (plugin.getSettings().isLiteBanSupport()) plugin.getLiteBans().clearWarnings(player);
         publishEvent(ModEvent.CLEAR_WARNINGS, player, "Cleared by AutoMod");
-        handleDiscordIntegration(plugin.getServer().getOfflinePlayer(player).getName() + "'s warnings have been cleared", Color.GREEN, "Reason: Cleared by AutoMod");
+        handleDiscordIntegration(plugin.getServer().getOfflinePlayer(player).getName(), "'s warnings have been cleared", Color.GREEN, "Reason: Cleared by AutoMod");
     }
 
     public static long getWarnTime(UUID player) {
@@ -145,12 +105,10 @@ public class MuteManager {
 
     public static void checkPlayer(UUID player) {
         long currentTime = System.currentTimeMillis();
-
         if (isMuted(player) && currentTime >= getMuteTime(player)) {
             unmutePlayer(player);
             clearWarnings(player);
         }
-
         if (currentTime - getWarnTime(player) >= plugin.getSettings().getWarnExpireTime()) {
             clearWarnings(player);
         }
@@ -158,31 +116,19 @@ public class MuteManager {
 
     public static void mutePlayer(String playerName, Long time, String reason) {
         Player player = plugin.getServer().getPlayer(playerName);
-        if (player == null) {
-            return;
-        }
-
+        if (player == null) return;
         UUID playerId = player.getUniqueId();
         mutedPlayers.put(playerId, System.currentTimeMillis() + time);
         mutedReasons.put(playerId, reason);
-
-        if (plugin.getSettings().isLiteBanSupport()) {
-            plugin.getLiteBans().mutePlayer(playerId);
-        }
-
+        if (plugin.getSettings().isLiteBanSupport()) plugin.getLiteBans().mutePlayer(playerId);
         publishEvent(ModEvent.MUTE, playerId, reason);
         handleDiscordIntegration("AutoMod", playerName + " has been muted", Color.RED, "Reason: " + reason);
     }
 
     public static void warnPlayer(UUID uniqueId, String reason) {
-        warnings.merge(uniqueId, new Pair<>(System.currentTimeMillis(), 1), (oldPair, newPair) ->
-                new Pair<>(oldPair.getFirst(), oldPair.getSecond() + 1));
+        warnings.merge(uniqueId, new Pair<>(System.currentTimeMillis(), 1), (oldPair, newPair) -> new Pair<>(oldPair.getFirst(), oldPair.getSecond() + 1));
         warningReasons.put(uniqueId, reason);
-
-        if (plugin.getSettings().isLiteBanSupport()) {
-            plugin.getLiteBans().warnPlayer(uniqueId);
-        }
-
+        if (plugin.getSettings().isLiteBanSupport()) plugin.getLiteBans().warnPlayer(uniqueId);
         publishEvent(ModEvent.WARN, uniqueId, reason);
         handleDiscordIntegration("AutoMod", plugin.getServer().getOfflinePlayer(uniqueId).getName() + " has been warned", Color.YELLOW, "Reason: " + reason);
     }
@@ -191,26 +137,18 @@ public class MuteManager {
         UUID player = UUID.fromString(mutedPlayer.uuid());
         mutedPlayers.put(player, mutedPlayer.mutedUntil());
         mutedReasons.put(player, mutedPlayer.reason());
-
-        if (plugin.getSettings().isLiteBanSupport()) {
-            plugin.getLiteBans().mutePlayer(player);
-        }
-
+        if (plugin.getSettings().isLiteBanSupport()) plugin.getLiteBans().mutePlayer(player);
         publishEvent(ModEvent.MUTE, player, mutedPlayer.reason());
-        handleDiscordIntegration(plugin.getServer().getOfflinePlayer(player).getName() + " has been muted", Color.RED, "Reason: " + mutedPlayer.reason());
+        handleDiscordIntegration(plugin.getServer().getOfflinePlayer(player).getName(), " has been muted", Color.RED, "Reason: " + mutedPlayer.reason());
     }
 
     public static void warnPlayer(WarnedPlayer warnedPlayer) {
         UUID player = UUID.fromString(warnedPlayer.uuid());
         warnings.put(player, new Pair<>(warnedPlayer.warnedAt(), warnedPlayer.warns()));
         warningReasons.put(player, warnedPlayer.reason());
-
-        if (plugin.getSettings().isLiteBanSupport()) {
-            plugin.getLiteBans().warnPlayer(player);
-        }
-
+        if (plugin.getSettings().isLiteBanSupport()) plugin.getLiteBans().warnPlayer(player);
         publishEvent(ModEvent.WARN, player, warnedPlayer.reason());
-        handleDiscordIntegration(plugin.getServer().getOfflinePlayer(player).getName() + " has been warned", Color.YELLOW, "Reason: " + warnedPlayer.reason());
+        handleDiscordIntegration(plugin.getServer().getOfflinePlayer(player).getName(), " has been warned", Color.YELLOW, "Reason: " + warnedPlayer.reason());
     }
 
     public static List<MutedPlayer> getMutedPlayersSave() {

@@ -227,7 +227,7 @@ public class AsyncPlayerChatListener implements Listener {
             default:
                 break;
         }
-        handleDiscordIntegration("Player " + player.getName() + " sent a message with a link(s)", Color.RED, ListUtils.toString(links, ", "));
+        handleDiscordIntegration("AutoMod","Player " + player.getName() + " sent a message with a link(s)", Color.RED, ListUtils.toString(links, ", "));
         return true;
     }
 
