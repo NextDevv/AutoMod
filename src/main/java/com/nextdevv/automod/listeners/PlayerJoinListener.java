@@ -63,6 +63,7 @@ public class PlayerJoinListener implements Listener {
         }
 
         try {
+            if(Arrays.stream(plugin.getSettings().getExcludeUsers()).toList().contains(player.getName())) return;
             boolean isVpnOrProxy = plugin.getVpnProxyDetector().isVpnProxy(Objects.requireNonNull(player.getAddress()).getAddress().getHostAddress()).get();
             if (isVpnOrProxy && plugin.getSettings().isVpnKick()) {
                 kick(player, plugin.getMessages().getVpnProxy());
