@@ -5,7 +5,6 @@ import com.nextdevv.automod.commands.ICommand;
 import com.nextdevv.automod.configs.ConfigLoader;
 import com.nextdevv.automod.configs.Settings;
 import com.nextdevv.automod.utils.ApiKeyValidator;
-import com.nextdevv.automod.utils.ChatUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -46,7 +45,7 @@ public class ReloadCommand implements ICommand {
 
         msg(sender, "&eVerifying API key...");
         String apiKey = plugin.getSettings().getPerspectiveApiKey();
-        if (Objects.equals(apiKey, "YOUR_API_KEY") || !ApiKeyValidator.isFormatValid(apiKey)) {
+        if (Objects.equals(apiKey, "YOUR_API_KEY") || ApiKeyValidator.isFormatValid(apiKey)) {
             msg(sender, "&cInvalid API key! Please set a valid API key in the config.");
             msg(sender, "&cRolling back changes...");
             plugin.setSettings(settings);

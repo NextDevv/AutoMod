@@ -17,28 +17,28 @@ import java.util.List;
 import static com.nextdevv.automod.utils.ChatUtils.msg;
 
 public class ReportCommand implements CommandExecutor, TabExecutor {
-    final AutoMod plugin;
+    private final AutoMod plugin;
 
     public ReportCommand(AutoMod plugin) {
         this.plugin = plugin;
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if(!(commandSender instanceof Player player)) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
             return true;
         }
 
-        if(strings.length < 2) {
+        if (args.length < 2) {
             msg(player, plugin.getMessages().getReportUsage());
             return true;
         }
 
-        String targetName = strings[0];
-        String message = String.join(" ", strings).replace(targetName + " ", "");
+        String targetName = args[0];
+        String message = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 
         ReportEvent report = new ReportEvent(player.getName(), targetName, message);
-        if(plugin.getSettings().isRequiresMultiInstance()) {
+        if (plugin.getSettings().isRequiresMultiInstance()) {
             report.send();
         }
 
@@ -50,11 +50,11 @@ public class ReportCommand implements CommandExecutor, TabExecutor {
 
     @Nullable
     @Override
-    public List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        if(strings.length == 1) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        if (args.length == 1) {
             return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
-        } else if(strings.length >= 2) {
-            return Arrays.stream(plugin.getSettings().getDefaultReports()).toList();
+        } else if (args.length >= 2) {
+            return Arrays.asList(plugin.getSettings().getDefaultReports());
         }
 
         return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();

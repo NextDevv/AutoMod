@@ -190,6 +190,8 @@ public class Settings implements Cloneable {
             "Enable Discord integration."
     })
     boolean discordIntegration = false;
+    @YamlComment("Enable DiscordSRV integration.")
+    boolean discordSRVIntegration = false;
     @YamlComment("Discord webhook URL.")
     String discordWebhook = "https://discord.com/api/webhooks/1234567890/yourwebhook";
     @YamlComment("Reports Discord webhook URL.")

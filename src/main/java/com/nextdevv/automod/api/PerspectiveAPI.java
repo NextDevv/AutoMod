@@ -20,7 +20,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
 
-import static java.time.Duration.*;
+import static java.time.Duration.ofSeconds;
 
 public class PerspectiveAPI {
     private final String apiKey;
@@ -30,177 +30,117 @@ public class PerspectiveAPI {
     private final Settings settings;
     private final String[] censorChars;
     private final Attribute[] attributes;
-    StringBuilder attributesString = new StringBuilder();
+    private final String attributesString;
 
     public PerspectiveAPI(@NotNull String apiKey, @NotNull Settings settings) {
         this.apiKey = apiKey;
         this.settings = settings;
-        censorChars = this.settings.getCensorCharacters().split("");
-        attributes = this.settings.getAttributes();
+        this.censorChars = settings.getCensorCharacters().split("");
+        this.attributes = settings.getAttributes();
+        this.attributesString = buildAttributesString(attributes);
+    }
 
-        for (Attribute attribute : this.attributes) {
-            attributesString.append("\"").append(attribute.name()).append("\": {},");
+    private String buildAttributesString(Attribute[] attributes) {
+        StringBuilder sb = new StringBuilder();
+        for (Attribute attribute : attributes) {
+            sb.append("\"").append(attribute.name()).append("\": {},");
         }
-        attributesString.deleteCharAt(attributesString.length() - 1);
+        sb.deleteCharAt(sb.length() - 1);
+        return sb.toString();
     }
 
     public CompletableFuture<Pair<String, Boolean>> censorAsync(String text, Attribute attribute) throws URISyntaxException {
-        HttpRequest request = HttpRequest.newBuilder()
+        HttpRequest request = buildRequest(text, attribute.name());
+        return processResponse(text, request, attribute);
+    }
+
+    public CompletableFuture<Pair<String, Boolean>> censorAsync(String text) throws URISyntaxException {
+        HttpRequest request = buildRequest(text, attributesString);
+        return processResponse(text, request, attributes);
+    }
+
+    private HttpRequest buildRequest(String text, String attributes) throws URISyntaxException {
+        return HttpRequest.newBuilder()
                 .uri(new URI("https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=" + apiKey))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(
-                        """
+                        String.format("""
                                 {
                                     "comment": {
                                         "text": "%s"
                                     },
                                     "requestedAttributes": {
-                                        "%s": {}
+                                        %s
                                     },
                                     "spanAnnotations": true
                                 }
-                              """.replace("%s", text
-                                        .replace("\"", "\\\""))
-                                 .replace("%s", attribute.name())
+                              """, text.replace("\"", "\\\""), attributes)
                 ))
                 .build();
+    }
 
+    private CompletableFuture<Pair<String, Boolean>> processResponse(String text, HttpRequest request, Attribute... attributes) {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenApply(responseBody -> {
                     boolean toxic = false;
-
                     JsonObject object = JsonString.fromString(responseBody);
-                    JsonObject spanScores = object.get("attributeScores").get(attribute.name()).get("spanScores");
                     List<Character> chars = new ArrayList<>(text.chars().mapToObj(e -> (char) e).toList());
 
-                    Debug.log("Attribute: " + attribute.name());
-                    Debug.log("Response: " + object);
-                    Debug.verbose("Text: " + text);
-                    Debug.verbose("Chars: " + chars);
-                    Debug.verbose("Span scores: " + spanScores);
-
-                    for (int i = 0; i < spanScores.size(); i++) {
-                        JsonObject spanScore = spanScores.get(i);
-                        double score = Double.parseDouble(String.valueOf(Objects.requireNonNull(spanScore.get("score").get("value").get())));
-                        if (score > settings.getThreshold()) {
-                            toxic = true;
-
-                            int begin = (int) Double.parseDouble(String.valueOf(Objects.requireNonNull(spanScore.get("begin").get())));
-                            int end = (int) Double.parseDouble(String.valueOf(Objects.requireNonNull(spanScore.get("end").get())));
-                            IntStream.range(begin, end).forEach(j -> {
-                                String randomChar = ListUtils.random(censorChars);
-                                if (chars.get(j) != ' ' && chars.get(j) != '\n' && chars.get(j) != '\t' && chars.get(j) != '\r')
-                                    chars.set(j, randomChar.charAt(0));
-                            });
-
-                            Debug.log("Toxic span: " + text.substring(begin, end));
-                        }
+                    for (Attribute attribute : attributes) {
+                        JsonObject spanScores = object.get("attributeScores").get(attribute.name()).get("spanScores");
+                        toxic = processSpanScores(text, chars, spanScores);
+                        if (toxic) break;
                     }
 
                     return new Pair<>(chars.stream().map(String::valueOf).reduce("", String::concat), toxic);
                 });
     }
 
-    public CompletableFuture<Pair<String, Boolean>> censorAsync(String text) throws URISyntaxException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI("https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=" + apiKey))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(
-                        """
-                                {
-                                    "comment": {
-                                        "text": "%s"
-                                    },
-                                    "requestedAttributes": {
-                                        %att
-                                    },
-                                    "spanAnnotations": true
-                                }
-                              """.replace("%s", text.replace("\"", "\\\""))
-                                 .replace("%att", attributesString.toString())
-                ))
-                .build();
-
-        Debug.log("Request: " + request);
-        Debug.verbose("Request Body: " + """
-                {
-                    "comment": {
-                        "text": "%s"
-                    },
-                    "requestedAttributes": {
-                        %att
-                    },
-                    "spanAnnotations": true
-                }
-                """.replace("%s", text.replace("\"", "\\\""))
-                             .replace("%att", attributesString.toString()));
-
-        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenApply(responseBody -> {
-                    boolean toxic = false;
-
-                    JsonObject object = JsonString.fromString(responseBody);
-
-                    for(Attribute attribute : attributes) {
-                        JsonObject spanScores = object.get("attributeScores").get(attribute.name()).get("spanScores");
-                        List<Character> chars = new ArrayList<>(text.chars().mapToObj(e -> (char) e).toList());
-
-                        Debug.log("Attribute: " + attribute.name());
-                        Debug.log("Response: " + object);
-                        Debug.verbose("Text: " + text);
-                        Debug.verbose("Chars: " + chars);
-                        Debug.verbose("Span scores: " + spanScores);
-
-                        for (int i = 0; i < spanScores.size(); i++) {
-                            JsonObject spanScore = spanScores.get(i);
-                            double score = Double.parseDouble(String.valueOf(Objects.requireNonNull(spanScore.get("score").get("value").get())));
-                            if(score > settings.getThreshold()) {
-                                toxic = true;
-
-                                int begin = (int) Double.parseDouble(String.valueOf(Objects.requireNonNull(spanScore.get("begin").get())));
-                                int end = (int) Double.parseDouble(String.valueOf(Objects.requireNonNull(spanScore.get("end").get())));
-                                IntStream.range(begin, end).forEach(j -> {
-                                    String randomChar = ListUtils.random(censorChars);
-                                    if(chars.get(j) != ' ' && chars.get(j) != '\n' && chars.get(j) != '\t' && chars.get(j) != '\r')
-                                        chars.set(j, randomChar.charAt(0));
-                                });
-
-                                Debug.log("Toxic span: " + text.substring(begin, end));
-                            }
-                        }
-
-                        if(toxic) return new Pair<>(chars.stream().map(String::valueOf).reduce("", String::concat), toxic);
+    private boolean processSpanScores(String text, List<Character> chars, JsonObject spanScores) {
+        boolean toxic = false;
+        for (int i = 0; i < spanScores.size(); i++) {
+            JsonObject spanScore = spanScores.get(i);
+            double score = Double.parseDouble(String.valueOf(spanScore.get("score").get("value").get()));
+            if (score > settings.getThreshold()) {
+                toxic = true;
+                int begin = (int) Double.parseDouble(String.valueOf(Objects.requireNonNull(spanScore.get("begin").get())));
+                int end = (int) Double.parseDouble(String.valueOf(Objects.requireNonNull(spanScore.get("begin").get())));
+                IntStream.range(begin, end).forEach(j -> {
+                    if (!Character.isWhitespace(chars.get(j))) {
+                        chars.set(j, ListUtils.random(censorChars).charAt(0));
                     }
-
-                    return new Pair<>(text, false);
                 });
+                Debug.log("Toxic span: " + text.substring(begin, end));
+            }
+        }
+        return toxic;
     }
 
     public boolean isConnected() {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=" + apiKey))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(
-                        """
-                                {
-                                    "comment": {
-                                        "text": "test"
-                                    },
-                                    "requestedAttributes": {
-                                        "TOXICITY": {}
-                                    },
-                                    "spanAnnotations": true
-                                }
-                              """
-                ))
-                .build();
-
+        HttpRequest request = buildTestRequest();
         try {
             return client.send(request, HttpResponse.BodyHandlers.ofString()).statusCode() == 200;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private HttpRequest buildTestRequest() {
+        return HttpRequest.newBuilder()
+                .uri(URI.create("https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=" + apiKey))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString("""
+                        {
+                            "comment": {
+                                "text": "test"
+                            },
+                            "requestedAttributes": {
+                                "TOXICITY": {}
+                            },
+                            "spanAnnotations": true
+                        }
+                      """))
+                .build();
     }
 }

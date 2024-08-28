@@ -1,27 +1,18 @@
 package com.nextdevv.automod;
 
 import com.google.gson.Gson;
-import com.nextdevv.automod.api.VpnProxyDetector;
+import com.nextdevv.automod.api.*;
 import com.nextdevv.automod.commands.*;
 import com.nextdevv.automod.commands.sub.*;
 import com.nextdevv.automod.configs.*;
-import com.nextdevv.automod.listeners.AsyncPlayerChatListener;
-import com.nextdevv.automod.listeners.AsyncSignChangeListener;
-import com.nextdevv.automod.listeners.PlayerJoinListener;
+import com.nextdevv.automod.listeners.*;
 import com.nextdevv.automod.logger.ChatLogger;
-import com.nextdevv.automod.manager.CacheManager;
-import com.nextdevv.automod.manager.MessagesManager;
-import com.nextdevv.automod.manager.MuteManager;
-import com.nextdevv.automod.manager.ReportManager;
-import com.nextdevv.automod.utils.DiscordWebhook;
-import com.nextdevv.automod.utils.VersionChecker;
-import io.lettuce.core.RedisClient;
-import com.nextdevv.automod.api.LiteBans;
-import com.nextdevv.automod.api.PerspectiveAPI;
-import com.nextdevv.automod.listeners.PlayerCommandPreprocessListener;
+import com.nextdevv.automod.manager.*;
 import com.nextdevv.automod.metrics.Metrics;
 import com.nextdevv.automod.redis.RedisManager;
-import com.nextdevv.automod.utils.ApiKeyValidator;
+import com.nextdevv.automod.utils.*;
+import github.scarsz.discordsrv.DiscordSRV;
+import io.lettuce.core.RedisClient;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -88,6 +79,7 @@ public final class AutoMod extends JavaPlugin {
         hookIntoLiteBans();
         enableChatLogger();
         enableDiscordWebhook();
+        checkDiscordSRVIntegration();
         enableMetrics();
         checkUpdates();
 
@@ -135,6 +127,15 @@ public final class AutoMod extends JavaPlugin {
         versionChecker = new VersionChecker("NextDevv/AutoMod", this);
         getServer().getPluginManager().registerEvents(versionChecker, this);
         versionChecker.checkVersion(getDescription().getVersion());
+    }
+
+    private void checkDiscordSRVIntegration() {
+        if(!settings.isDiscordSRVIntegration()) return;
+
+        getLogger().info("Checking for DiscordSRV integration...");
+        if (getServer().getPluginManager().getPlugin("DiscordSRV") != null)
+            getLogger().info("DiscordSRV has been found.");
+        else getLogger().warning("DiscordSRV has not been found. Some features may not work properly.");
     }
 
     @Override
@@ -204,7 +205,7 @@ public final class AutoMod extends JavaPlugin {
     private boolean validateApiKey() {
         getLogger().info("Validating API KEY...");
         if (settings.getPerspectiveApiKey().equals("YOUR_API_KEY")
-                || !ApiKeyValidator.isFormatValid(settings.getPerspectiveApiKey())) {
+                || ApiKeyValidator.isFormatValid(settings.getPerspectiveApiKey())) {
             getLogger().warning("Invalid Perspective API key.");
             return false;
         }
@@ -232,8 +233,6 @@ public final class AutoMod extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerCommandPreprocessListener(getMessages(), getSettings()), this);
         getServer().getPluginManager().registerEvents(new AsyncSignChangeListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
-        // TODO: Fix this
-        // getServer().getPluginManager().registerEvents(new SignChangeListener(this), this);
     }
 
     private void connectToPerspectiveAPI() {
@@ -252,25 +251,18 @@ public final class AutoMod extends JavaPlugin {
         Objects.requireNonNull(getCommand("automod")).setTabCompleter(commandManager);
 
         if(settings.isPrivateMessaging()) {
-            Objects.requireNonNull(getCommand("message")).setExecutor(new MessageCommand(this));
-            Objects.requireNonNull(getCommand("message")).setTabCompleter(new MessageCommand(this));
-            Objects.requireNonNull(getCommand("reply")).setExecutor(new ReplyCommand(this));
-            Objects.requireNonNull(getCommand("reply")).setTabCompleter(new ReplyCommand(this));
-
-            if(settings.isIgnoreEnabled()) {
-                Objects.requireNonNull(getCommand("ignore")).setExecutor(new IgnoreCommand(this));
-                Objects.requireNonNull(getCommand("ignore")).setTabCompleter(new IgnoreCommand(this));
-            }else unregisterCommand("ignore");
-        }else {
+            setupPrivateMessagingCommands();
+        } else {
             unregisterCommand("message");
             unregisterCommand("reply");
             unregisterCommand("ignore");
         }
 
         if(settings.isReportSystem()) {
-            Objects.requireNonNull(getCommand("report")).setExecutor(new ReportCommand(this));
-            Objects.requireNonNull(getCommand("report")).setTabCompleter(new ReportCommand(this));
-        } else unregisterCommand("report");
+            setupReportCommand();
+        } else {
+            unregisterCommand("report");
+        }
 
         commandManager.registerCommand(new ReloadCommand());
         commandManager.registerCommand(new UnMuteCommand());
@@ -280,6 +272,25 @@ public final class AutoMod extends JavaPlugin {
         commandManager.registerCommand(new ClearChatCommand());
         commandManager.registerCommand(new HelpCommand());
         commandManager.registerCommand(new ChatLogsCommand());
+    }
+
+    private void setupPrivateMessagingCommands() {
+        Objects.requireNonNull(getCommand("message")).setExecutor(new MessageCommand(this));
+        Objects.requireNonNull(getCommand("message")).setTabCompleter(new MessageCommand(this));
+        Objects.requireNonNull(getCommand("reply")).setExecutor(new ReplyCommand(this));
+        Objects.requireNonNull(getCommand("reply")).setTabCompleter(new ReplyCommand(this));
+
+        if(settings.isIgnoreEnabled()) {
+            Objects.requireNonNull(getCommand("ignore")).setExecutor(new IgnoreCommand(this));
+            Objects.requireNonNull(getCommand("ignore")).setTabCompleter(new IgnoreCommand(this));
+        } else {
+            unregisterCommand("ignore");
+        }
+    }
+
+    private void setupReportCommand() {
+        Objects.requireNonNull(getCommand("report")).setExecutor(new ReportCommand(this));
+        Objects.requireNonNull(getCommand("report")).setTabCompleter(new ReportCommand(this));
     }
 
     private void unregisterCommand(String name) {

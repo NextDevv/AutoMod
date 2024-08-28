@@ -23,34 +23,37 @@ public class VpnProxyDetector {
     public CompletableFuture<Boolean> isVpnProxy(String ip) {
         return CompletableFuture.supplyAsync(() -> {
             Settings settings = plugin.getSettings();
-
             if (!settings.isVpnDetection()) return false;
 
             String oFlags = settings.getOflags() != '_' ? "&oflags=" + settings.getOflags() : "";
-
-            HttpRequest request;
-            try {
-                request = HttpRequest.newBuilder()
-                        .uri(new URI("https://check.getipintel.net/check.php?ip=" + ip + "&contact=" + settings.getContactEmail()
-                                + "&flags=" + settings.getFlags() + oFlags))
-                        .POST(HttpRequest.BodyPublishers.ofString("{\"ip\":\"" + ip + "\"}"))
-                        .build();
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
+            HttpRequest request = buildRequest(ip, settings, oFlags);
 
             try {
                 double response = Double.parseDouble(client.send(request, HttpResponse.BodyHandlers.ofString()).body());
-                if (settings.isVpnOutput() || settings.isDebug()) {
-                    plugin.getLogger().info("IP: " + ip + " | Response: " + response);
-                }
-
+                logResponse(ip, response, settings);
                 return response > settings.getThreshold();
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
+                return false;
             }
-
-            return false;
         });
+    }
+
+    private HttpRequest buildRequest(String ip, Settings settings, String oFlags) {
+        try {
+            return HttpRequest.newBuilder()
+                    .uri(new URI("https://check.getipintel.net/check.php?ip=" + ip + "&contact=" + settings.getContactEmail()
+                            + "&flags=" + settings.getFlags() + oFlags))
+                    .POST(HttpRequest.BodyPublishers.ofString("{\"ip\":\"" + ip + "\"}"))
+                    .build();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void logResponse(String ip, double response, Settings settings) {
+        if (settings.isVpnOutput() || settings.isDebug()) {
+            plugin.getLogger().info("IP: " + ip + " | Response: " + response);
+        }
     }
 }

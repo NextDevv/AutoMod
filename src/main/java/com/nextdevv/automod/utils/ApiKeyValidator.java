@@ -8,9 +8,9 @@ public class ApiKeyValidator {
 
     public static boolean isFormatValid(String apiKey) {
         if (apiKey == null || apiKey.isEmpty()) {
-            return false;
+            return true;
         }
 
-        return API_KEY_PATTERN.matcher(apiKey).matches();
+        return !API_KEY_PATTERN.matcher(apiKey).matches();
     }
 }

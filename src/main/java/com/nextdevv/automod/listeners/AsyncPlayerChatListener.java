@@ -8,6 +8,7 @@ import com.nextdevv.automod.utils.ListUtils;
 import com.nextdevv.automod.utils.Pair;
 import com.nextdevv.automod.AutoMod;
 import com.nextdevv.automod.utils.LinkDetector;
+import github.scarsz.discordsrv.DiscordSRV;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -85,6 +86,7 @@ public class AsyncPlayerChatListener implements Listener {
     public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         event.setCancelled(true);
+
         if (player.hasPermission("automod.bypass") || player.isOp()) {
             broadcastMessage(event, player, event.getMessage(), event.getMessage());
             return;
@@ -310,6 +312,8 @@ public class AsyncPlayerChatListener implements Listener {
                     censoredMessage,
                     event.getRecipients()
             );
+            newEvent.setCancelled(false);
+            newEvent.setFormat(event.getFormat());
 
             handlers.forEach(handler -> {
                 try {
@@ -336,6 +340,9 @@ public class AsyncPlayerChatListener implements Listener {
             }
         });
 
+        Debug.log("Message: " + message);
+        Debug.log("Censored message: " + censoredMessage);
+        Debug.log("Format: " + format);
         ChatEvent chatEvent = new ChatEvent(player, format.replace(message, censoredMessage), format);
         if (plugin.getSettings().isRequiresMultiInstance()) {
             plugin.getRedisManager().publish(plugin.getGson().toJsonTree(chatEvent).getAsJsonObject());
@@ -343,7 +350,9 @@ public class AsyncPlayerChatListener implements Listener {
 
         plugin.getChatLogger().log(player, message, !censoredMessage.equals(message));
 
-        if(censoredMessage.equals(message))
+        if(plugin.getSettings().isDiscordSRVIntegration()) {
+            DiscordSRV.getPlugin().processChatMessage(player, message, DiscordSRV.getPlugin().getOptionalChannel("global"), false, event);
+        }else if(censoredMessage.equals(message))
             handleDiscordIntegration(player.getName(), "", Color.GRAY, message);
         else handleDiscordIntegration(player.getName(), "", Color.RED, message);
     }

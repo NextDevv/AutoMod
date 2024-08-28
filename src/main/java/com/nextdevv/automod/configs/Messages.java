@@ -61,6 +61,8 @@ public class Messages {
     String usernameTooLong = "{prefix} &cUsername is too long!";
     @YamlComment("Notify the player when its username is not allowed.")
     String blacklistedUsername = "{prefix} Your username is not allowed!";
+    @YamlComment("Notify the player when its username is toxic.")
+    String toxicUsername = "{prefix} Your username is toxic!";
     @YamlComment("Error message when executing chat logs command")
     String noChatLogsFound = "{prefix} No chat logs were found.";
     @YamlComment("Error message when the page is not found.")
