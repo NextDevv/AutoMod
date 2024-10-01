@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.nextdevv'
-version = '2.2.5-release'
+version = '2.2.6-release'
 
 repositories {
     mavenCentral()
@@ -30,9 +30,8 @@ dependencies {
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version:'1.18.22'
     compileOnly group: 'io.lettuce', name: 'lettuce-core', version:'6.2.5.RELEASE'
     implementation files("libs/JsonFlow-1.4.2.jar")
-    implementation files("libs/CMILib1.5.1.1.jar")
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
-    implementation 'org.jooq:joor:0.9.15'
+    compileOnly 'org.jooq:joor:0.9.15'
     compileOnly 'com.discordsrv:discordsrv:1.28.0'
 }
 
